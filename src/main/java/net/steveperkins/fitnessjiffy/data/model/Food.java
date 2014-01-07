@@ -55,6 +55,23 @@ public class Food {
     private Double protein;
     private Double sodium;
 
+    public Food(UUID id, String name, ServingType defaultServingType, Double servingTypeQty,
+                Integer calories, Double fat, Double saturatedFat, Double carbs,
+                Double fiber, Double sugar, Double protein, Double sodium) {
+        this.id = id;
+        this.name = name;
+        this.defaultServingType = defaultServingType;
+        this.servingTypeQty = servingTypeQty;
+        this.calories = calories;
+        this.fat = fat;
+        this.saturatedFat = saturatedFat;
+        this.carbs = carbs;
+        this.fiber = fiber;
+        this.sugar = sugar;
+        this.protein = protein;
+        this.sodium = sodium;
+    }
+
     public UUID getId() {
         return id;
     }

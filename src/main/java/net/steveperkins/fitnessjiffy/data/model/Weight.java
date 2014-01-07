@@ -9,6 +9,12 @@ public class Weight {
     private Date date;
     private Double pounds;
 
+    public Weight(UUID id, Date date, Double pounds) {
+        this.id = id;
+        this.date = date;
+        this.pounds = pounds;
+    }
+
     public UUID getId() {
         return id;
     }

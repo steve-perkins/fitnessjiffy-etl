@@ -11,6 +11,14 @@ public class FoodEaten {
     private Food.ServingType servingType;
     private Double servingQty;
 
+    public FoodEaten(UUID id, UUID foodId, Date date, Food.ServingType servingType, Double servingQty) {
+        this.id = id;
+        this.foodId = foodId;
+        this.date = date;
+        this.servingType = servingType;
+        this.servingQty = servingQty;
+    }
+
     public UUID getId() {
         return id;
     }

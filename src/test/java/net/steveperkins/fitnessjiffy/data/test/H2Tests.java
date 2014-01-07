@@ -1,0 +1,80 @@
+package net.steveperkins.fitnessjiffy.data.test;
+
+import net.steveperkins.fitnessjiffy.data.model.Datastore;
+import net.steveperkins.fitnessjiffy.data.reader.H2Reader;
+import net.steveperkins.fitnessjiffy.data.writer.H2Writer;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
+
+import static junit.framework.TestCase.assertEquals;
+
+public class H2Tests {
+
+    private final String CURRENT_WORKING_DIRECTORY = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
+    private final int EXPECTED_JSON_STRING_LENGTH = 3452626;
+    private final int EXPECTED_JSON_FILE_LENGTH = 3452773;
+
+    @Before
+    public void before() throws Exception {
+        Class.forName("org.sqlite.JDBC");
+        cleanFileInWorkingDirectory("sqlite-temp.h2.db");
+        cleanFileInWorkingDirectory("h2-temp.h2.db");
+        cleanFileInWorkingDirectory("output.json");
+    }
+
+    private void cleanFileInWorkingDirectory(String name) throws Exception {
+        File theFile = new File(CURRENT_WORKING_DIRECTORY + name);
+        if(theFile.exists()) {
+            if(!theFile.delete()) {
+                throw new Exception("There is an existing file " + theFile.getCanonicalPath()
+                        + " which can't be deleted for some reason.  Please delete this file manually.");
+            }
+        }
+    }
+
+    @Test
+    public void canReadTest() throws Exception {
+        Connection connection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2");
+
+        // Test conversion to JSON string
+        String jsonString = new H2Reader(connection).read().toJSONString();
+        assertEquals(EXPECTED_JSON_STRING_LENGTH, jsonString.length());
+
+        // Test output to JSON file
+        File jsonFile = new File(CURRENT_WORKING_DIRECTORY + "output.json");
+        new H2Reader(connection).read().toJSONFile(jsonFile);
+        assertEquals(EXPECTED_JSON_FILE_LENGTH, jsonFile.length());
+
+        connection.close();
+    }
+
+    @Test
+    public void canWriteTest() throws Exception {
+        // Read the existing database
+        Connection readConnection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2");
+        Datastore datastore = new H2Reader(readConnection).read();
+        readConnection.close();
+
+        // Write its contents to a new database
+        Connection writeConnection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2-temp");
+        new H2Writer(writeConnection, datastore).write();
+        writeConnection.close();
+
+        // Do a round-trip read of the new database, and confirm its data has the same expected size
+        Connection confirmationConnection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2-temp");
+        Datastore newDatastore = new H2Reader(confirmationConnection).read();
+        confirmationConnection.close();
+        assertEquals(newDatastore.getExercises().size(), datastore.getExercises().size());
+        assertEquals(newDatastore.getGlobalFoods().size(), datastore.getGlobalFoods().size());
+        assertEquals(newDatastore.getUsers().size(), datastore.getUsers().size());
+        assertEquals(newDatastore.getUsers().iterator().next().getWeights().size(), datastore.getUsers().iterator().next().getWeights().size());
+        assertEquals(newDatastore.getUsers().iterator().next().getFoods().size(), datastore.getUsers().iterator().next().getFoods().size());
+        assertEquals(newDatastore.getUsers().iterator().next().getFoodsEaten().size(), datastore.getUsers().iterator().next().getFoodsEaten().size());
+        assertEquals(newDatastore.getUsers().iterator().next().getExercisesPerformed().size(), datastore.getUsers().iterator().next().getExercisesPerformed().size());
+    }
+
+}

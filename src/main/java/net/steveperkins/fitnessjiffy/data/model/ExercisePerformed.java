@@ -10,6 +10,13 @@ public class ExercisePerformed {
     private Date date;
     private Integer minutes;
 
+    public ExercisePerformed(UUID id, UUID exerciseId, Date date, Integer minutes) {
+        this.id = id;
+        this.exerciseId = exerciseId;
+        this.date = date;
+        this.minutes = minutes;
+    }
+
     public UUID getId() {
         return id;
     }

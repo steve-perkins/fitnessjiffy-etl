@@ -1,5 +1,8 @@
 package net.steveperkins.fitnessjiffy.data.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.UUID;
 
 public class Exercise {
@@ -9,6 +12,19 @@ public class Exercise {
     private Double metabolicEquivalent;
     private String category;
     private String description;
+
+    @JsonCreator
+    public Exercise(@JsonProperty("id") UUID id,
+                    @JsonProperty("code") String code,
+                    @JsonProperty("metabolicEquivalent") Double metabolicEquivalent,
+                    @JsonProperty("category") String category,
+                    @JsonProperty("description") String description) {
+        this.id = id;
+        this.code = code;
+        this.metabolicEquivalent = metabolicEquivalent;
+        this.category = category;
+        this.description = description;
+    }
 
     public UUID getId() {
         return id;
@@ -49,15 +65,6 @@ public class Exercise {
     public void setDescription(String description) {
         if(description != null) description = description.trim();
         this.description = description;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        if(other == null || !(other instanceof Exercise)) return false;
-        Exercise that = (Exercise) other;
-        return this.id.equals(that.id) && this.code.equals(that.code)
-                && this.metabolicEquivalent.equals(that.metabolicEquivalent) && this.category.equals(that.category)
-                && this.description.equals(that.description);
     }
 
 }

@@ -77,6 +77,25 @@ public class User {
     private Set<FoodEaten> foodsEaten = new NoNullsSet<>();
     private Set<ExercisePerformed> exercisesPerformed = new NoNullsSet<>();
 
+    public User(UUID id, Gender gender, int age, double heightInInches, ActivityLevel activityLevel, String username,
+                String password, String firstName, String lastName, boolean isActive, Set<Weight> weights,
+                Set<Food> foods, Set<FoodEaten> foodsEaten, Set<ExercisePerformed> exercisesPerformed) {
+        this.id = id;
+        this.gender = gender;
+        this.age = age;
+        this.heightInInches = heightInInches;
+        this.activityLevel = activityLevel;
+        this.username = username;
+        this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.isActive = isActive;
+        this.weights = weights;
+        this.foods = foods;
+        this.foodsEaten = foodsEaten;
+        this.exercisesPerformed = exercisesPerformed;
+    }
+
     public UUID getId() {
         return id;
     }

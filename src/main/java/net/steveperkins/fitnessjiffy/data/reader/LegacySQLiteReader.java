@@ -3,7 +3,13 @@ package net.steveperkins.fitnessjiffy.data.reader;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Preconditions;
-import net.steveperkins.fitnessjiffy.data.model.*;
+import net.steveperkins.fitnessjiffy.data.model.Datastore;
+import net.steveperkins.fitnessjiffy.data.model.Exercise;
+import net.steveperkins.fitnessjiffy.data.model.ExercisePerformed;
+import net.steveperkins.fitnessjiffy.data.model.Food;
+import net.steveperkins.fitnessjiffy.data.model.FoodEaten;
+import net.steveperkins.fitnessjiffy.data.model.User;
+import net.steveperkins.fitnessjiffy.data.model.Weight;
 import net.steveperkins.fitnessjiffy.data.util.NoNullsMap;
 import net.steveperkins.fitnessjiffy.data.util.NoNullsSet;
 
@@ -13,71 +19,43 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Set;
 import java.util.UUID;
 
 public class LegacySQLiteReader extends JDBCReader {
 
-    public static interface TABLES {
-        public static String USERS = "USERS";
-        public static String WEIGHT = "WEIGHT";
-        public static String FOODS = "FOODS";
-        public static String FOODS_EATEN = "FOODS_EATEN";
-        public static String EXERCISES = "EXERCISES";
-        public static String EXERCISES_PERFORMED = "EXERCISES_PERFORMED";
+    public interface TABLES extends JDBCReader.TABLES {
+        public static final String USERS = "USERS";
+        public static final String FOODS = "FOODS";
+        public static final String FOODS_EATEN = "FOODS_EATEN";
+        public static final String EXERCISES = "EXERCISES";
+        public static final String EXERCISES_PERFORMED = "EXERCISES_PERFORMED";
     }
-    public static interface USERS {
-        public static final String ID = "ID";
-        public static final String GENDER = "GENDER";
-        public static final String AGE = "AGE";
-        public static final String HEIGHT_IN_INCHES = "HEIGHT_IN_INCHES";
-        public static final String ACTIVITY_LEVEL = "ACTIVITY_LEVEL";
-        public static final String USERNAME = "USERNAME";
-        public static final String PASSWORD = "PASSWORD";
-        public static final String FIRST_NAME= "FIRST_NAME";
-        public static final String LAST_NAME = "LAST_NAME";
+    public interface USERS extends JDBCReader.USERS {
         public static final String ACTIVE = "ACTIVE";
     }
-    public static interface WEIGHT {
+    public interface WEIGHT {
         public static final String ID = "ID";
         public static final String USER_ID = "USER_ID";
         public static final String DATE = "DATE";
         public static final String POUNDS = "POUNDS";
     }
-    public static interface FOODS {
-        public static final String ID = "ID";
+    public interface FOODS extends JDBCReader.FOODS {
         public static final String USER_ID = "USER_ID";
-        public static final String NAME = "NAME";
-        public static final String DEFAULT_SERVING_TYPE = "DEFAULT_SERVING_TYPE";
-        public static final String SERVING_TYPE_QTY = "SERVING_TYPE_QTY";
-        public static final String CALORIES = "CALORIES";
-        public static final String FAT = "FAT";
-        public static final String SATURATED_FAT = "SATURATED_FAT";
-        public static final String CARBS = "CARBS";
-        public static final String FIBER = "FIBER";
-        public static final String SUGAR = "SUGAR";
-        public static final String PROTEIN = "PROTEIN";
-        public static final String SODIUM = "SODIUM";
     }
-    public static interface FOODS_EATEN {
-        public static final String ID = "ID";
-        public static final String USER_ID = "USER_ID";
-        public static final String FOOD_ID = "FOOD_ID";
-        public static final String DATE = "DATE";
-        public static final String SERVING_QTY = "SERVING_QTY";
-        public static final String SERVING_TYPE = "SERVING_TYPE";
+    public interface FOODS_EATEN extends JDBCReader.FOODS_EATEN {
     }
-    public static interface EXERCISES {
-        public static final String ID = "ID";
+    public interface EXERCISES extends JDBCReader.EXERCISES {
         public static final String NAME = "NAME";
         public static final String CALORIES_PER_HOUR = "CALORIES_PER_HOUR";
         public static final String HIDDEN = "HIDDEN";
+
+        public static final String CATEGORY = null;
+        public static final String CODE = null;
+        public static final String DESCRIPTION = null;
+        public static final String METABOLIC_EQUIVALENT = null;
     }
-    public static interface EXERCISES_PERFORMED {
-        public static final String ID = "ID";
-        public static final String USER_ID = "USER_ID";
-        public static final String EXERCISE_ID = "EXERCISE_ID";
-        public static final String DATE = "DATE";
-        public static final String MINUTES = "MINUTES";
+    public interface EXERCISES_PERFORMED extends JDBCReader.EXERCISES_PERFORMED {
     }
 
     private final NoNullsMap<Integer, UUID> foodIds = new NoNullsMap<>();
@@ -137,7 +115,7 @@ public class LegacySQLiteReader extends JDBCReader {
 
         // Load global foods
         try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOODS+" WHERE "+FOODS.USER_ID+" IS NULL");
-             ResultSet rs = statement.executeQuery(); ) {
+             ResultSet rs = statement.executeQuery() ) {
             while(rs.next()) {
                 datastore.getGlobalFoods().add(readFood(rs));
             }
@@ -145,7 +123,7 @@ public class LegacySQLiteReader extends JDBCReader {
 
         // Load users (includes weights, user-owned foods, foods eaten, and exercises performed)
         try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.USERS);
-             ResultSet rs = statement.executeQuery(); ) {
+             ResultSet rs = statement.executeQuery() ) {
             while(rs.next()) {
                 datastore.getUsers().add(readUser(rs, connection));
             }
@@ -154,260 +132,229 @@ public class LegacySQLiteReader extends JDBCReader {
     }
 
     private User readUser(ResultSet rs, Connection connection) throws Exception {
-        User user = new User();
-
-        // ID
         int id = rs.getInt(USERS.ID);
         if (id == 0 || rs.wasNull()) throw new Exception("Malformed user, no ID");
         UUID uuid = UUID.randomUUID();
-        user.setId(uuid);
 
-        // Gender
         User.Gender gender = User.Gender.fromString(rs.getString(USERS.GENDER));
         if (gender == null || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no gender");
-        user.setGender(gender);
 
-        // Age
         int age = rs.getInt(USERS.AGE);
         if (age == 0 || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no age");
-        user.setAge(age);
 
-        // Height
         double heightInInches = rs.getDouble(USERS.HEIGHT_IN_INCHES);
         if (heightInInches == 0 || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no height");
-        user.setHeightInInches(heightInInches);
 
-        // Activity Level
         User.ActivityLevel activityLevel = User.ActivityLevel.fromValue(rs.getDouble(USERS.ACTIVITY_LEVEL));
-        if (activityLevel == null || rs.wasNull())
-            throw new Exception("Malformed user with ID: " + id + ", no activity level");
-        user.setActivityLevel(activityLevel);
+        if (activityLevel == null || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no activity level");
 
-        // Username
         String username = rs.getString(USERS.USERNAME);
         if (username == null || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no username");
-        user.setUsername(username);
 
-        // Password
         String password = rs.getString(USERS.PASSWORD);
         if (password == null || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no password");
-        user.setPassword(password);
 
-        // First name
         String firstName = rs.getString(USERS.FIRST_NAME);
         if (firstName == null || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no first name");
-        user.setFirstName(firstName);
 
-        // Last name
         String lastName = rs.getString(USERS.LAST_NAME);
         if (lastName == null || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no last name");
-        user.setLastName(firstName);
 
-        // "Is Active?" flag
         String isActive = rs.getString(USERS.ACTIVE);
         if (isActive == null || (!isActive.trim().equalsIgnoreCase("Y") && !isActive.trim().equalsIgnoreCase("N")))
             throw new Exception("Malformed user with ID: " + id + ", no active flag");
-        user.setActive(isActive.trim().equalsIgnoreCase("Y"));
 
         // Weights
+        Set<Weight> weights = new NoNullsSet<>();
         try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.WEIGHT+" WHERE "+WEIGHT.USER_ID+" = ?") ) {
             statement.setInt(1, id);
-            try ( ResultSet weightsResultSet = statement.executeQuery(); ) {
+            try ( ResultSet weightsResultSet = statement.executeQuery() ) {
                 while(weightsResultSet.next()) {
-                    user.getWeights().add(readWeight(weightsResultSet));
+                    weights.add(readWeight(weightsResultSet));
                 }
             }
         }
 
         // User-owned foods
+        Set<Food> foods = new NoNullsSet<>();
         try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOODS+" WHERE "+FOODS.USER_ID+" = ?") ) {
             statement.setInt(1, id);
-            try ( ResultSet userFoodResultSet = statement.executeQuery(); ) {
+            try ( ResultSet userFoodResultSet = statement.executeQuery() ) {
                 while(userFoodResultSet.next()) {
-                    user.getFoods().add(readFood(userFoodResultSet));
+                    foods.add(readFood(userFoodResultSet));
                 }
             }
         }
 
         // Foods eaten
+        Set<FoodEaten> foodsEaten = new NoNullsSet<>();
         try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOODS_EATEN+" WHERE "+FOODS_EATEN.USER_ID+" = ?") ) {
             statement.setInt(1, id);
-            try ( ResultSet foodsEatenResultSet = statement.executeQuery(); ) {
+            try ( ResultSet foodsEatenResultSet = statement.executeQuery() ) {
                 while(foodsEatenResultSet.next()) {
-                    user.getFoodsEaten().add(readFoodEaten(foodsEatenResultSet));
+                    foodsEaten.add(readFoodEaten(foodsEatenResultSet));
                 }
             }
         }
 
         // Exercises performed
+        Set<ExercisePerformed> exercisesPerformed = new NoNullsSet<>();
         try ( PreparedStatement statement = connection.prepareStatement(
                 "SELECT "+TABLES.EXERCISES_PERFORMED+".*, "+TABLES.EXERCISES+"."+EXERCISES.NAME
                         +" FROM "+TABLES.EXERCISES_PERFORMED+", "+TABLES.EXERCISES
                         +" WHERE "+TABLES.EXERCISES_PERFORMED+"."+EXERCISES_PERFORMED.EXERCISE_ID+" = "+TABLES.EXERCISES+"."+EXERCISES.ID
                         +" AND "+TABLES.EXERCISES_PERFORMED+"."+EXERCISES_PERFORMED.USER_ID+" = ?") ) {
             statement.setInt(1, id);
-            try ( ResultSet exercisesPerformedResultSet = statement.executeQuery(); ) {
+            try ( ResultSet exercisesPerformedResultSet = statement.executeQuery() ) {
                 while(exercisesPerformedResultSet.next()) {
-                    user.getExercisesPerformed().add(readExercisePerformed(exercisesPerformedResultSet));
+                    exercisesPerformed.add(readExercisePerformed(exercisesPerformedResultSet));
                 }
             }
         }
 
-        return user;
+        return new User(
+                uuid,
+                gender,
+                age,
+                heightInInches,
+                activityLevel,
+                username,
+                password,
+                firstName,
+                lastName,
+                isActive.trim().equalsIgnoreCase("Y"),
+                weights,
+                foods,
+                foodsEaten,
+                exercisesPerformed
+        );
     }
 
     private Weight readWeight(ResultSet rs) throws Exception {
-        Weight weight = new Weight();
-
-        // ID
         int id = rs.getInt(WEIGHT.ID);
         if (id == 0 || rs.wasNull()) throw new Exception("Malformed weight, no ID");
         UUID uuid = UUID.randomUUID();
-        weight.setId(uuid);
 
-        // Date
         String date = rs.getString(WEIGHT.DATE);
         if(date == null || rs.wasNull()) throw new Exception("Malformed weight with ID: " + id + ", no date");
-        weight.setDate(dateFormatter.parse(date));
 
-        // Pounds
         Double pounds = rs.getDouble(WEIGHT.POUNDS);
         if(pounds == null || rs.wasNull()) throw new Exception("Malformed weight with ID: " + id + ", no pounds");
-        weight.setPounds(pounds);
 
-        return weight;
+        return new Weight(
+                uuid,
+                dateFormatter.parse(date),
+                pounds
+        );
     }
 
     private Food readFood(ResultSet rs) throws Exception {
-        Food food = new Food();
-
-        // ID
         int id = rs.getInt(FOODS.ID);
         if (id == 0 || rs.wasNull()) throw new Exception("Malformed food, no ID");
         UUID uuid = UUID.randomUUID();
         foodIds.put(id, uuid);
-        food.setId(uuid);
 
-        // Name
         String name = rs.getString(FOODS.NAME);
         if(name == null || rs.wasNull()) throw new Exception("Malformed food with ID: " + id + ", no name");
-        food.setName(name);
 
-        // Default serving type
         Food.ServingType defaultServingType = Food.ServingType.fromString(rs.getString(FOODS.DEFAULT_SERVING_TYPE));
         if(defaultServingType == null || rs.wasNull()) throw new Exception("Malformed food with ID: " + id + ", no default serving type");
-        food.setDefaultServingType(defaultServingType);
 
-        // Serving type qty
         double servingTypeQty = rs.getDouble(FOODS.SERVING_TYPE_QTY);
         if(servingTypeQty == 0 || rs.wasNull()) throw new Exception("Malformed food with ID: " + id + ", no serving type qty");
-        food.setServingTypeQty(servingTypeQty);
 
         //
         // The remaining attributes of a Food might actually be zero, so we don't treat
         // it as an error condition.
         //
 
-        // Calories
         int calories = rs.getInt(FOODS.CALORIES);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null calories");
         }
-        food.setCalories(calories);
 
-        // Fat
         double fat = rs.getDouble(FOODS.FAT);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null fat");
         }
-        food.setFat(fat);
 
-        // Saturated fat
         double saturatedFat = rs.getDouble(FOODS.SATURATED_FAT);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null saturated fat");
         }
-        food.setSaturatedFat(saturatedFat);
 
-        // Carbs
         double carbs = rs.getDouble(FOODS.CARBS);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null carbs");
         }
-        food.setCarbs(carbs);
 
-        // Fiber
         double fiber = rs.getDouble(FOODS.FIBER);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null fiber");
         }
-        food.setFiber(fiber);
 
-        // Sugar
         double sugar = rs.getDouble(FOODS.SUGAR);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null sugar");
         }
-        food.setSugar(sugar);
 
-        // Protein
         double protein = rs.getDouble(FOODS.PROTEIN);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null protein");
         }
-        food.setProtein(protein);
 
-        // Sodium
         double sodium = rs.getDouble(FOODS.SODIUM);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null sodium");
         }
-        food.setSodium(sodium);
 
-        return food;
+        return new Food(
+                uuid,
+                name,
+                defaultServingType,
+                servingTypeQty,
+                calories,
+                fat,
+                saturatedFat,
+                carbs,
+                fiber,
+                sugar,
+                protein,
+                sodium
+        );
     }
 
     private FoodEaten readFoodEaten(ResultSet rs) throws Exception {
-        FoodEaten foodEaten = new FoodEaten();
-
-        // ID
         int id = rs.getInt(FOODS_EATEN.ID);
         if (id == 0 || rs.wasNull()) throw new Exception("Malformed food eaten, no ID");
         UUID uuid = UUID.randomUUID();
-        foodEaten.setId(uuid);
 
-        // Food ID
         int foodId = rs.getInt(FOODS_EATEN.FOOD_ID);
         if (foodId == 0 || rs.wasNull()) throw new Exception("Malformed food eaten with ID: " + id + ", no food ID");
         if(foodIds.get(foodId) == null) throw new Exception("Food eaten with ID: " + id + " references unknown food ID: " + foodId);
-        foodEaten.setFoodId(foodIds.get(foodId));
 
-        // Date
         String date = rs.getString(FOODS_EATEN.DATE);
         if(date == null || rs.wasNull()) throw new Exception("Malformed food eaten with ID: " + id + ", no date");
-        foodEaten.setDate(dateFormatter.parse(date));
 
-        // Serving Qty
         double servingQty = rs.getDouble(FOODS_EATEN.SERVING_QTY);
         if(servingQty == 0 || rs.wasNull()) throw new Exception("Malformed food eaten with ID: " + id + ", no serving qty");
-        foodEaten.setServingQty(servingQty);
 
-        // Serving type
         Food.ServingType servingType = Food.ServingType.fromString(rs.getString(FOODS_EATEN.SERVING_TYPE));
         if(servingType == null || rs.wasNull()) throw new Exception("Malformed food eaten with ID: " + id + ", no serving type");
-        foodEaten.setServingType(servingType);
 
-        return foodEaten;
+        return new FoodEaten(
+                uuid,
+                foodIds.get(foodId),
+                dateFormatter.parse(date),
+                servingType,
+                servingQty
+        );
     }
 
     private ExercisePerformed readExercisePerformed(ResultSet rs) throws Exception {
-        ExercisePerformed exercisePerformed = new ExercisePerformed();
-
-        // ID
         int id = rs.getInt(EXERCISES_PERFORMED.ID);
         if (id == 0 || rs.wasNull()) throw new Exception("Malformed exercise performed, no ID");
         UUID uuid = UUID.randomUUID();
-        exercisePerformed.setId(uuid);
 
         // Exercise ID
         String legacyName = rs.getString(EXERCISES.NAME);
@@ -417,19 +364,21 @@ public class LegacySQLiteReader extends JDBCReader {
         if(exerciseId == null) {
             throw new Exception("Malformed exercise performed with ID: " + id + ", found no new id matching legacy name: [" + legacyName + "]");
         }
-        exercisePerformed.setExerciseId(exerciseId);
 
         // Date
         String date = rs.getString(EXERCISES_PERFORMED.DATE);
         if(date == null || rs.wasNull()) throw new Exception("Malformed exercise performed with ID: " + id + ", no date");
-        exercisePerformed.setDate(dateFormatter.parse(date));
 
         // Minutes
         int minutes = rs.getInt(EXERCISES_PERFORMED.MINUTES);
         if(minutes == 0 || rs.wasNull()) throw new Exception("Malformed exercise performed with ID: " + id + ", no minutes");
-        exercisePerformed.setMinutes(minutes);
 
-        return exercisePerformed;
+        return new ExercisePerformed(
+                uuid,
+                exerciseId,
+                dateFormatter.parse(date),
+                minutes
+        );
     }
 
 }
