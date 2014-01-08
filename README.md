@@ -1,4 +1,4 @@
-fitnessjiffy-data
-=================
+fitnessjiffy-etl
+================
 
-Utilities for migrating data between different versions of the FitnessJiffy demo application
+Utilities for importing, exporting, and migrating data between different versions of the FitnessJiffy demo application.
