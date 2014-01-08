@@ -30,44 +30,44 @@ public class H2Reader extends JDBCReader {
         Datastore datastore = new Datastore();
 
         // Load exercises
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+ TABLES.EXERCISES);
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+ TABLES.EXERCISE);
             ResultSet rs = statement.executeQuery() ) {
             while(rs.next()) {
                 Exercise exercise = new Exercise(
-                        UUID.nameUUIDFromBytes(rs.getBytes(EXERCISES.ID)),
-                        rs.getString(EXERCISES.CODE),
-                        rs.getDouble(EXERCISES.METABOLIC_EQUIVALENT),
-                        rs.getString(EXERCISES.CATEGORY),
-                        rs.getString(EXERCISES.DESCRIPTION)
+                        UUID.nameUUIDFromBytes(rs.getBytes(EXERCISE.ID)),
+                        rs.getString(EXERCISE.CODE),
+                        rs.getDouble(EXERCISE.METABOLIC_EQUIVALENT),
+                        rs.getString(EXERCISE.CATEGORY),
+                        rs.getString(EXERCISE.DESCRIPTION)
                 );
                 datastore.getExercises().add(exercise);
             }
         }
 
         // Load global foods
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOODS+" WHERE "+FOODS.USER_ID+" IS NULL");
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOOD+" WHERE "+FOOD.USER_ID+" IS NULL");
             ResultSet rs = statement.executeQuery() ) {
             while(rs.next()) {
                 Food food = new Food(
-                        UUID.nameUUIDFromBytes(rs.getBytes(FOODS.ID)),
-                        rs.getString(FOODS.NAME),
-                        Food.ServingType.fromString(rs.getString(FOODS.DEFAULT_SERVING_TYPE)),
-                        rs.getDouble(FOODS.SERVING_TYPE_QTY),
-                        rs.getInt(FOODS.CALORIES),
-                        rs.getDouble(FOODS.FAT),
-                        rs.getDouble(FOODS.SATURATED_FAT),
-                        rs.getDouble(FOODS.CARBS),
-                        rs.getDouble(FOODS.FIBER),
-                        rs.getDouble(FOODS.SUGAR),
-                        rs.getDouble(FOODS.PROTEIN),
-                        rs.getDouble(FOODS.SODIUM)
+                        UUID.nameUUIDFromBytes(rs.getBytes(FOOD.ID)),
+                        rs.getString(FOOD.NAME),
+                        Food.ServingType.fromString(rs.getString(FOOD.DEFAULT_SERVING_TYPE)),
+                        rs.getDouble(FOOD.SERVING_TYPE_QTY),
+                        rs.getInt(FOOD.CALORIES),
+                        rs.getDouble(FOOD.FAT),
+                        rs.getDouble(FOOD.SATURATED_FAT),
+                        rs.getDouble(FOOD.CARBS),
+                        rs.getDouble(FOOD.FIBER),
+                        rs.getDouble(FOOD.SUGAR),
+                        rs.getDouble(FOOD.PROTEIN),
+                        rs.getDouble(FOOD.SODIUM)
                 );
                 datastore.getGlobalFoods().add(food);
             }
         }
 
         // Load users (includes weights, user-owned foods, foods eaten, and exercises performed)
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.USERS);
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.USER);
              ResultSet rs = statement.executeQuery() ) {
             while(rs.next()) {
                 datastore.getUsers().add(readUser(rs, connection));
@@ -78,13 +78,13 @@ public class H2Reader extends JDBCReader {
     }
 
     private User readUser(ResultSet rs, Connection connection) throws SQLException {
-//        System.out.println("String == " + rs.getString(USERS.ID));
-//        System.out.println("Bytes == " + rs.getBytes(USERS.ID));
-//        System.out.println("Hex String == " + DatatypeConverter.printHexBinary(rs.getBytes(USERS.ID)).toLowerCase());
-//        String userIdHexString = DatatypeConverter.printHexBinary(rs.getBytes(USERS.ID)).toLowerCase();
+//        System.out.println("String == " + rs.getString(USER.ID));
+//        System.out.println("Bytes == " + rs.getBytes(USER.ID));
+//        System.out.println("Hex String == " + DatatypeConverter.printHexBinary(rs.getBytes(USER.ID)).toLowerCase());
+//        String userIdHexString = DatatypeConverter.printHexBinary(rs.getBytes(USER.ID)).toLowerCase();
 //        byte[] userIdBytes = ByteBuffer.allocate(16).putLong(userId.getMostSignificantBits()).putLong(userId.getLeastSignificantBits()).array();
 //        UUID foo = UUID.nameUUIDFromBytes(DatatypeConverter.parseHexBinary(userIdHexString));
-        byte[] userId = rs.getBytes(USERS.ID);
+        byte[] userId = rs.getBytes(USER.ID);
 
         // Weights
         Set<Weight> weights = new NoNullsSet<>();
@@ -104,23 +104,23 @@ public class H2Reader extends JDBCReader {
 
         // User-owned foods
         Set<Food> foods = new NoNullsSet<>();
-        try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOODS+" WHERE "+FOODS.USER_ID+" = ?") ) {
+        try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOOD+" WHERE "+FOOD.USER_ID+" = ?") ) {
             statement.setBytes(1, userId);
             try ( ResultSet userFoodResultSet = statement.executeQuery() ) {
                 while(userFoodResultSet.next()) {
                     Food food = new Food(
-                            UUID.nameUUIDFromBytes(userFoodResultSet.getBytes(FOODS.ID)),
-                            userFoodResultSet.getString(FOODS.NAME),
-                            Food.ServingType.fromString(userFoodResultSet.getString(FOODS.DEFAULT_SERVING_TYPE)),
-                            userFoodResultSet.getDouble(FOODS.SERVING_TYPE_QTY),
-                            userFoodResultSet.getInt(FOODS.CALORIES),
-                            userFoodResultSet.getDouble(FOODS.FAT),
-                            userFoodResultSet.getDouble(FOODS.SATURATED_FAT),
-                            userFoodResultSet.getDouble(FOODS.CARBS),
-                            userFoodResultSet.getDouble(FOODS.FIBER),
-                            userFoodResultSet.getDouble(FOODS.SUGAR),
-                            userFoodResultSet.getDouble(FOODS.PROTEIN),
-                            userFoodResultSet.getDouble(FOODS.SODIUM)
+                            UUID.nameUUIDFromBytes(userFoodResultSet.getBytes(FOOD.ID)),
+                            userFoodResultSet.getString(FOOD.NAME),
+                            Food.ServingType.fromString(userFoodResultSet.getString(FOOD.DEFAULT_SERVING_TYPE)),
+                            userFoodResultSet.getDouble(FOOD.SERVING_TYPE_QTY),
+                            userFoodResultSet.getInt(FOOD.CALORIES),
+                            userFoodResultSet.getDouble(FOOD.FAT),
+                            userFoodResultSet.getDouble(FOOD.SATURATED_FAT),
+                            userFoodResultSet.getDouble(FOOD.CARBS),
+                            userFoodResultSet.getDouble(FOOD.FIBER),
+                            userFoodResultSet.getDouble(FOOD.SUGAR),
+                            userFoodResultSet.getDouble(FOOD.PROTEIN),
+                            userFoodResultSet.getDouble(FOOD.SODIUM)
                     );
                     foods.add(food);
                 }
@@ -129,16 +129,16 @@ public class H2Reader extends JDBCReader {
 
         // Foods eaten
         Set<FoodEaten> foodsEaten = new NoNullsSet<>();
-        try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOODS_EATEN+" WHERE "+FOODS_EATEN.USER_ID+" = ?") ) {
+        try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOOD_EATEN+" WHERE "+FOOD_EATEN.USER_ID+" = ?") ) {
             statement.setBytes(1, userId);
             try ( ResultSet foodsEatenResultSet = statement.executeQuery() ) {
                 while(foodsEatenResultSet.next()) {
                     FoodEaten foodEaten = new FoodEaten(
-                            UUID.nameUUIDFromBytes(foodsEatenResultSet.getBytes(FOODS_EATEN.ID)),
-                            UUID.nameUUIDFromBytes(foodsEatenResultSet.getBytes(FOODS_EATEN.FOOD_ID)),
-                            foodsEatenResultSet.getDate(FOODS_EATEN.DATE),
-                            Food.ServingType.fromString(foodsEatenResultSet.getString(FOODS_EATEN.SERVING_TYPE)),
-                            foodsEatenResultSet.getDouble(FOODS_EATEN.SERVING_QTY)
+                            UUID.nameUUIDFromBytes(foodsEatenResultSet.getBytes(FOOD_EATEN.ID)),
+                            UUID.nameUUIDFromBytes(foodsEatenResultSet.getBytes(FOOD_EATEN.FOOD_ID)),
+                            foodsEatenResultSet.getDate(FOOD_EATEN.DATE),
+                            Food.ServingType.fromString(foodsEatenResultSet.getString(FOOD_EATEN.SERVING_TYPE)),
+                            foodsEatenResultSet.getDouble(FOOD_EATEN.SERVING_QTY)
                     );
                     foodsEaten.add(foodEaten);
                 }
@@ -148,15 +148,15 @@ public class H2Reader extends JDBCReader {
         // Exercises performed
         Set<ExercisePerformed> exercisesPerformed = new NoNullsSet<>();
         try ( PreparedStatement statement = connection.prepareStatement(
-                "SELECT * FROM "+TABLES.EXERCISES_PERFORMED+" WHERE "+TABLES.EXERCISES_PERFORMED+"."+EXERCISES_PERFORMED.USER_ID+" = ?") ) {
+                "SELECT * FROM "+TABLES.EXERCISE_PERFORMED+" WHERE "+TABLES.EXERCISE_PERFORMED+"."+EXERCISE_PERFORMED.USER_ID+" = ?") ) {
             statement.setBytes(1, userId);
             try ( ResultSet exercisesPerformedResultSet = statement.executeQuery() ) {
                 while(exercisesPerformedResultSet.next()) {
                     ExercisePerformed exercisePerformed = new ExercisePerformed(
-                            UUID.nameUUIDFromBytes(exercisesPerformedResultSet.getBytes(EXERCISES_PERFORMED.ID)),
-                            UUID.nameUUIDFromBytes(exercisesPerformedResultSet.getBytes(EXERCISES_PERFORMED.EXERCISE_ID)),
-                            exercisesPerformedResultSet.getDate(EXERCISES_PERFORMED.DATE),
-                            exercisesPerformedResultSet.getInt(EXERCISES_PERFORMED.MINUTES)
+                            UUID.nameUUIDFromBytes(exercisesPerformedResultSet.getBytes(EXERCISE_PERFORMED.ID)),
+                            UUID.nameUUIDFromBytes(exercisesPerformedResultSet.getBytes(EXERCISE_PERFORMED.EXERCISE_ID)),
+                            exercisesPerformedResultSet.getDate(EXERCISE_PERFORMED.DATE),
+                            exercisesPerformedResultSet.getInt(EXERCISE_PERFORMED.MINUTES)
                     );
                     exercisesPerformed.add(exercisePerformed);
                 }
@@ -165,15 +165,15 @@ public class H2Reader extends JDBCReader {
 
         return new User(
                 UUID.nameUUIDFromBytes(userId),
-                User.Gender.fromString(rs.getString(USERS.GENDER)),
-                rs.getInt(USERS.AGE),
-                rs.getDouble(USERS.HEIGHT_IN_INCHES),
-                User.ActivityLevel.fromValue(rs.getDouble(USERS.ACTIVITY_LEVEL)),
-                rs.getString(USERS.USERNAME),
-                rs.getString(USERS.PASSWORD),
-                rs.getString(USERS.FIRST_NAME),
-                rs.getString(USERS.LAST_NAME),
-                rs.getBoolean(USERS.ACTIVE),
+                User.Gender.fromString(rs.getString(USER.GENDER)),
+                rs.getInt(USER.AGE),
+                rs.getDouble(USER.HEIGHT_IN_INCHES),
+                User.ActivityLevel.fromValue(rs.getDouble(USER.ACTIVITY_LEVEL)),
+                rs.getString(USER.USERNAME),
+                rs.getString(USER.PASSWORD),
+                rs.getString(USER.FIRST_NAME),
+                rs.getString(USER.LAST_NAME),
+                rs.getBoolean(USER.IS_ACTIVE),
                 weights,
                 foods,
                 foodsEaten,

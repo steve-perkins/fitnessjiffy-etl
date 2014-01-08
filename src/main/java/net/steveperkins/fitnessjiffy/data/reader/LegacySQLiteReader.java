@@ -25,14 +25,14 @@ import java.util.UUID;
 public class LegacySQLiteReader extends JDBCReader {
 
     public interface TABLES extends JDBCReader.TABLES {
-        public static final String USERS = "USERS";
-        public static final String FOODS = "FOODS";
-        public static final String FOODS_EATEN = "FOODS_EATEN";
-        public static final String EXERCISES = "EXERCISES";
-        public static final String EXERCISES_PERFORMED = "EXERCISES_PERFORMED";
+        public static final String USER = "USERS";
+        public static final String FOOD = "FOODS";
+        public static final String FOOD_EATEN = "FOODS_EATEN";
+        public static final String EXERCISE = "EXERCISES";
+        public static final String EXERCISE_PERFORMED = "EXERCISES_PERFORMED";
     }
-    public interface USERS extends JDBCReader.USERS {
-        public static final String ACTIVE = "ACTIVE";
+    public interface USER extends JDBCReader.USER {
+        public static final String IS_ACTIVE = "ACTIVE";
     }
     public interface WEIGHT {
         public static final String ID = "ID";
@@ -40,22 +40,18 @@ public class LegacySQLiteReader extends JDBCReader {
         public static final String DATE = "DATE";
         public static final String POUNDS = "POUNDS";
     }
-    public interface FOODS extends JDBCReader.FOODS {
+    public interface FOOD extends JDBCReader.FOOD {
         public static final String USER_ID = "USER_ID";
     }
-    public interface FOODS_EATEN extends JDBCReader.FOODS_EATEN {
+    public interface FOOD_EATEN extends JDBCReader.FOOD_EATEN {
     }
-    public interface EXERCISES extends JDBCReader.EXERCISES {
+    public interface EXERCISE {
+        public static final String ID = "ID";
         public static final String NAME = "NAME";
         public static final String CALORIES_PER_HOUR = "CALORIES_PER_HOUR";
         public static final String HIDDEN = "HIDDEN";
-
-        public static final String CATEGORY = null;
-        public static final String CODE = null;
-        public static final String DESCRIPTION = null;
-        public static final String METABOLIC_EQUIVALENT = null;
     }
-    public interface EXERCISES_PERFORMED extends JDBCReader.EXERCISES_PERFORMED {
+    public interface EXERCISE_PERFORMED extends JDBCReader.EXERCISE_PERFORMED {
     }
 
     private final NoNullsMap<Integer, UUID> foodIds = new NoNullsMap<>();
@@ -114,7 +110,7 @@ public class LegacySQLiteReader extends JDBCReader {
         datastore.getExercises().addAll(exercises);
 
         // Load global foods
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOODS+" WHERE "+FOODS.USER_ID+" IS NULL");
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOOD+" WHERE "+FOOD.USER_ID+" IS NULL");
              ResultSet rs = statement.executeQuery() ) {
             while(rs.next()) {
                 datastore.getGlobalFoods().add(readFood(rs));
@@ -122,7 +118,7 @@ public class LegacySQLiteReader extends JDBCReader {
         }
 
         // Load users (includes weights, user-owned foods, foods eaten, and exercises performed)
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.USERS);
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.USER);
              ResultSet rs = statement.executeQuery() ) {
             while(rs.next()) {
                 datastore.getUsers().add(readUser(rs, connection));
@@ -132,35 +128,35 @@ public class LegacySQLiteReader extends JDBCReader {
     }
 
     private User readUser(ResultSet rs, Connection connection) throws Exception {
-        int id = rs.getInt(USERS.ID);
+        int id = rs.getInt(USER.ID);
         if (id == 0 || rs.wasNull()) throw new Exception("Malformed user, no ID");
         UUID uuid = UUID.randomUUID();
 
-        User.Gender gender = User.Gender.fromString(rs.getString(USERS.GENDER));
+        User.Gender gender = User.Gender.fromString(rs.getString(USER.GENDER));
         if (gender == null || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no gender");
 
-        int age = rs.getInt(USERS.AGE);
+        int age = rs.getInt(USER.AGE);
         if (age == 0 || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no age");
 
-        double heightInInches = rs.getDouble(USERS.HEIGHT_IN_INCHES);
+        double heightInInches = rs.getDouble(USER.HEIGHT_IN_INCHES);
         if (heightInInches == 0 || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no height");
 
-        User.ActivityLevel activityLevel = User.ActivityLevel.fromValue(rs.getDouble(USERS.ACTIVITY_LEVEL));
+        User.ActivityLevel activityLevel = User.ActivityLevel.fromValue(rs.getDouble(USER.ACTIVITY_LEVEL));
         if (activityLevel == null || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no activity level");
 
-        String username = rs.getString(USERS.USERNAME);
+        String username = rs.getString(USER.USERNAME);
         if (username == null || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no username");
 
-        String password = rs.getString(USERS.PASSWORD);
+        String password = rs.getString(USER.PASSWORD);
         if (password == null || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no password");
 
-        String firstName = rs.getString(USERS.FIRST_NAME);
+        String firstName = rs.getString(USER.FIRST_NAME);
         if (firstName == null || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no first name");
 
-        String lastName = rs.getString(USERS.LAST_NAME);
+        String lastName = rs.getString(USER.LAST_NAME);
         if (lastName == null || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no last name");
 
-        String isActive = rs.getString(USERS.ACTIVE);
+        String isActive = rs.getString(USER.IS_ACTIVE);
         if (isActive == null || (!isActive.trim().equalsIgnoreCase("Y") && !isActive.trim().equalsIgnoreCase("N")))
             throw new Exception("Malformed user with ID: " + id + ", no active flag");
 
@@ -177,7 +173,7 @@ public class LegacySQLiteReader extends JDBCReader {
 
         // User-owned foods
         Set<Food> foods = new NoNullsSet<>();
-        try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOODS+" WHERE "+FOODS.USER_ID+" = ?") ) {
+        try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOOD+" WHERE "+FOOD.USER_ID+" = ?") ) {
             statement.setInt(1, id);
             try ( ResultSet userFoodResultSet = statement.executeQuery() ) {
                 while(userFoodResultSet.next()) {
@@ -188,7 +184,7 @@ public class LegacySQLiteReader extends JDBCReader {
 
         // Foods eaten
         Set<FoodEaten> foodsEaten = new NoNullsSet<>();
-        try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOODS_EATEN+" WHERE "+FOODS_EATEN.USER_ID+" = ?") ) {
+        try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOOD_EATEN+" WHERE "+FOOD_EATEN.USER_ID+" = ?") ) {
             statement.setInt(1, id);
             try ( ResultSet foodsEatenResultSet = statement.executeQuery() ) {
                 while(foodsEatenResultSet.next()) {
@@ -200,10 +196,10 @@ public class LegacySQLiteReader extends JDBCReader {
         // Exercises performed
         Set<ExercisePerformed> exercisesPerformed = new NoNullsSet<>();
         try ( PreparedStatement statement = connection.prepareStatement(
-                "SELECT "+TABLES.EXERCISES_PERFORMED+".*, "+TABLES.EXERCISES+"."+EXERCISES.NAME
-                        +" FROM "+TABLES.EXERCISES_PERFORMED+", "+TABLES.EXERCISES
-                        +" WHERE "+TABLES.EXERCISES_PERFORMED+"."+EXERCISES_PERFORMED.EXERCISE_ID+" = "+TABLES.EXERCISES+"."+EXERCISES.ID
-                        +" AND "+TABLES.EXERCISES_PERFORMED+"."+EXERCISES_PERFORMED.USER_ID+" = ?") ) {
+                "SELECT "+TABLES.EXERCISE_PERFORMED+".*, "+TABLES.EXERCISE+"."+EXERCISE.NAME
+                        +" FROM "+TABLES.EXERCISE_PERFORMED+", "+TABLES.EXERCISE
+                        +" WHERE "+TABLES.EXERCISE_PERFORMED+"."+EXERCISE_PERFORMED.EXERCISE_ID+" = "+TABLES.EXERCISE+"."+EXERCISE.ID
+                        +" AND "+TABLES.EXERCISE_PERFORMED+"."+EXERCISE_PERFORMED.USER_ID+" = ?") ) {
             statement.setInt(1, id);
             try ( ResultSet exercisesPerformedResultSet = statement.executeQuery() ) {
                 while(exercisesPerformedResultSet.next()) {
@@ -249,18 +245,18 @@ public class LegacySQLiteReader extends JDBCReader {
     }
 
     private Food readFood(ResultSet rs) throws Exception {
-        int id = rs.getInt(FOODS.ID);
+        int id = rs.getInt(FOOD.ID);
         if (id == 0 || rs.wasNull()) throw new Exception("Malformed food, no ID");
         UUID uuid = UUID.randomUUID();
         foodIds.put(id, uuid);
 
-        String name = rs.getString(FOODS.NAME);
+        String name = rs.getString(FOOD.NAME);
         if(name == null || rs.wasNull()) throw new Exception("Malformed food with ID: " + id + ", no name");
 
-        Food.ServingType defaultServingType = Food.ServingType.fromString(rs.getString(FOODS.DEFAULT_SERVING_TYPE));
+        Food.ServingType defaultServingType = Food.ServingType.fromString(rs.getString(FOOD.DEFAULT_SERVING_TYPE));
         if(defaultServingType == null || rs.wasNull()) throw new Exception("Malformed food with ID: " + id + ", no default serving type");
 
-        double servingTypeQty = rs.getDouble(FOODS.SERVING_TYPE_QTY);
+        double servingTypeQty = rs.getDouble(FOOD.SERVING_TYPE_QTY);
         if(servingTypeQty == 0 || rs.wasNull()) throw new Exception("Malformed food with ID: " + id + ", no serving type qty");
 
         //
@@ -268,42 +264,42 @@ public class LegacySQLiteReader extends JDBCReader {
         // it as an error condition.
         //
 
-        int calories = rs.getInt(FOODS.CALORIES);
+        int calories = rs.getInt(FOOD.CALORIES);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null calories");
         }
 
-        double fat = rs.getDouble(FOODS.FAT);
+        double fat = rs.getDouble(FOOD.FAT);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null fat");
         }
 
-        double saturatedFat = rs.getDouble(FOODS.SATURATED_FAT);
+        double saturatedFat = rs.getDouble(FOOD.SATURATED_FAT);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null saturated fat");
         }
 
-        double carbs = rs.getDouble(FOODS.CARBS);
+        double carbs = rs.getDouble(FOOD.CARBS);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null carbs");
         }
 
-        double fiber = rs.getDouble(FOODS.FIBER);
+        double fiber = rs.getDouble(FOOD.FIBER);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null fiber");
         }
 
-        double sugar = rs.getDouble(FOODS.SUGAR);
+        double sugar = rs.getDouble(FOOD.SUGAR);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null sugar");
         }
 
-        double protein = rs.getDouble(FOODS.PROTEIN);
+        double protein = rs.getDouble(FOOD.PROTEIN);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null protein");
         }
 
-        double sodium = rs.getDouble(FOODS.SODIUM);
+        double sodium = rs.getDouble(FOOD.SODIUM);
         if(rs.wasNull()) {
             throw new Exception("Malformed food with ID: " + id + ", null sodium");
         }
@@ -325,21 +321,21 @@ public class LegacySQLiteReader extends JDBCReader {
     }
 
     private FoodEaten readFoodEaten(ResultSet rs) throws Exception {
-        int id = rs.getInt(FOODS_EATEN.ID);
+        int id = rs.getInt(FOOD_EATEN.ID);
         if (id == 0 || rs.wasNull()) throw new Exception("Malformed food eaten, no ID");
         UUID uuid = UUID.randomUUID();
 
-        int foodId = rs.getInt(FOODS_EATEN.FOOD_ID);
+        int foodId = rs.getInt(FOOD_EATEN.FOOD_ID);
         if (foodId == 0 || rs.wasNull()) throw new Exception("Malformed food eaten with ID: " + id + ", no food ID");
         if(foodIds.get(foodId) == null) throw new Exception("Food eaten with ID: " + id + " references unknown food ID: " + foodId);
 
-        String date = rs.getString(FOODS_EATEN.DATE);
+        String date = rs.getString(FOOD_EATEN.DATE);
         if(date == null || rs.wasNull()) throw new Exception("Malformed food eaten with ID: " + id + ", no date");
 
-        double servingQty = rs.getDouble(FOODS_EATEN.SERVING_QTY);
+        double servingQty = rs.getDouble(FOOD_EATEN.SERVING_QTY);
         if(servingQty == 0 || rs.wasNull()) throw new Exception("Malformed food eaten with ID: " + id + ", no serving qty");
 
-        Food.ServingType servingType = Food.ServingType.fromString(rs.getString(FOODS_EATEN.SERVING_TYPE));
+        Food.ServingType servingType = Food.ServingType.fromString(rs.getString(FOOD_EATEN.SERVING_TYPE));
         if(servingType == null || rs.wasNull()) throw new Exception("Malformed food eaten with ID: " + id + ", no serving type");
 
         return new FoodEaten(
@@ -352,12 +348,12 @@ public class LegacySQLiteReader extends JDBCReader {
     }
 
     private ExercisePerformed readExercisePerformed(ResultSet rs) throws Exception {
-        int id = rs.getInt(EXERCISES_PERFORMED.ID);
+        int id = rs.getInt(EXERCISE_PERFORMED.ID);
         if (id == 0 || rs.wasNull()) throw new Exception("Malformed exercise performed, no ID");
         UUID uuid = UUID.randomUUID();
 
         // Exercise ID
-        String legacyName = rs.getString(EXERCISES.NAME);
+        String legacyName = rs.getString(EXERCISE.NAME);
         if(legacyName == null || rs.wasNull()) throw new Exception("Malformed exercise performed with ID: " + id + ", found no exercise name");
         legacyName = legacyName.replace("\u00A0", " ").trim();  // For some reason, String.trim() doesn't remove ASCII character 160
         UUID exerciseId = exerciseIds.get(legacyName);
@@ -366,11 +362,11 @@ public class LegacySQLiteReader extends JDBCReader {
         }
 
         // Date
-        String date = rs.getString(EXERCISES_PERFORMED.DATE);
+        String date = rs.getString(EXERCISE_PERFORMED.DATE);
         if(date == null || rs.wasNull()) throw new Exception("Malformed exercise performed with ID: " + id + ", no date");
 
         // Minutes
-        int minutes = rs.getInt(EXERCISES_PERFORMED.MINUTES);
+        int minutes = rs.getInt(EXERCISE_PERFORMED.MINUTES);
         if(minutes == 0 || rs.wasNull()) throw new Exception("Malformed exercise performed with ID: " + id + ", no minutes");
 
         return new ExercisePerformed(

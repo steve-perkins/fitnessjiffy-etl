@@ -8,14 +8,14 @@ import java.sql.Connection;
 public abstract class JDBCReader {
 
     public interface TABLES {
-        public static String USERS = "USER";
+        public static String USER = "USER";
         public static String WEIGHT = "WEIGHT";
-        public static String FOODS = "FOOD";
-        public static String FOODS_EATEN = "FOOD_EATEN";
-        public static String EXERCISES = "EXERCISE";
-        public static String EXERCISES_PERFORMED = "EXERCISE_PERFORMED";
+        public static String FOOD = "FOOD";
+        public static String FOOD_EATEN = "FOOD_EATEN";
+        public static String EXERCISE = "EXERCISE";
+        public static String EXERCISE_PERFORMED = "EXERCISE_PERFORMED";
     }
-    public interface USERS {
+    public interface USER {
         public static final String ID = "ID";
         public static final String GENDER = "GENDER";
         public static final String AGE = "AGE";
@@ -25,7 +25,7 @@ public abstract class JDBCReader {
         public static final String PASSWORD = "PASSWORD";
         public static final String FIRST_NAME= "FIRST_NAME";
         public static final String LAST_NAME = "LAST_NAME";
-        public static final String ACTIVE = "IS_ACTIVE";
+        public static final String IS_ACTIVE = "IS_ACTIVE";
     }
     public interface WEIGHT {
         public static final String ID = "ID";
@@ -33,7 +33,7 @@ public abstract class JDBCReader {
         public static final String DATE = "DATE";
         public static final String POUNDS = "POUNDS";
     }
-    public interface FOODS {
+    public interface FOOD {
         public static final String ID = "ID";
         public static final String USER_ID = "OWNER_ID";
         public static final String NAME = "NAME";
@@ -48,7 +48,7 @@ public abstract class JDBCReader {
         public static final String PROTEIN = "PROTEIN";
         public static final String SODIUM = "SODIUM";
     }
-    public interface FOODS_EATEN {
+    public interface FOOD_EATEN {
         public static final String ID = "ID";
         public static final String USER_ID = "USER_ID";
         public static final String FOOD_ID = "FOOD_ID";
@@ -56,14 +56,14 @@ public abstract class JDBCReader {
         public static final String SERVING_QTY = "SERVING_QTY";
         public static final String SERVING_TYPE = "SERVING_TYPE";
     }
-    public interface EXERCISES {
+    public interface EXERCISE {
         public static final String ID = "ID";
         public static final String CATEGORY = "CATEGORY";
         public static final String CODE = "CODE";
         public static final String DESCRIPTION = "DESCRIPTION";
         public static final String METABOLIC_EQUIVALENT = "METABOLIC_EQUIVALENT";
     }
-    public interface EXERCISES_PERFORMED {
+    public interface EXERCISE_PERFORMED {
         public static final String ID = "ID";
         public static final String USER_ID = "USER_ID";
         public static final String EXERCISE_ID = "EXERCISE_ID";

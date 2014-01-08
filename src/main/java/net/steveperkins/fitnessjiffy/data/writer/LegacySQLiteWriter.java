@@ -9,12 +9,12 @@ import net.steveperkins.fitnessjiffy.data.model.FoodEaten;
 import net.steveperkins.fitnessjiffy.data.model.User;
 import net.steveperkins.fitnessjiffy.data.model.Weight;
 import net.steveperkins.fitnessjiffy.data.reader.LegacySQLiteReader.TABLES;
-import net.steveperkins.fitnessjiffy.data.reader.LegacySQLiteReader.EXERCISES;
-import net.steveperkins.fitnessjiffy.data.reader.LegacySQLiteReader.FOODS;
-import net.steveperkins.fitnessjiffy.data.reader.LegacySQLiteReader.USERS;
+import net.steveperkins.fitnessjiffy.data.reader.LegacySQLiteReader.EXERCISE;
+import net.steveperkins.fitnessjiffy.data.reader.LegacySQLiteReader.FOOD;
+import net.steveperkins.fitnessjiffy.data.reader.LegacySQLiteReader.USER;
 import net.steveperkins.fitnessjiffy.data.reader.LegacySQLiteReader.WEIGHT;
-import net.steveperkins.fitnessjiffy.data.reader.LegacySQLiteReader.FOODS_EATEN;
-import net.steveperkins.fitnessjiffy.data.reader.LegacySQLiteReader.EXERCISES_PERFORMED;
+import net.steveperkins.fitnessjiffy.data.reader.LegacySQLiteReader.FOOD_EATEN;
+import net.steveperkins.fitnessjiffy.data.reader.LegacySQLiteReader.EXERCISE_PERFORMED;
 import net.steveperkins.fitnessjiffy.data.util.NoNullsMap;
 
 import java.sql.Connection;
@@ -143,8 +143,8 @@ public class LegacySQLiteWriter extends JDBCWriter {
                 int exerciseId = getNextAvailableId(exerciseIds.values());
                 exerciseIds.put(exercise.getId(), exerciseId);
 
-                String sql = "INSERT INTO "+TABLES.EXERCISES+" ("+ EXERCISES.ID+", "+EXERCISES.NAME+", "+EXERCISES.CALORIES_PER_HOUR
-                        +", "+EXERCISES.HIDDEN+") VALUES (?, ?, ?, ?)";
+                String sql = "INSERT INTO "+TABLES.EXERCISE+" ("+ EXERCISE.ID+", "+EXERCISE.NAME+", "+EXERCISE.CALORIES_PER_HOUR
+                        +", "+EXERCISE.HIDDEN+") VALUES (?, ?, ?, ?)";
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
                     statement.setInt(1, exerciseId);
                     statement.setString(2, exercise.getDescription());
@@ -168,9 +168,9 @@ public class LegacySQLiteWriter extends JDBCWriter {
             int userId = getNextAvailableId(userIds.values());
             userIds.put(user.getId(), userId);
 
-            String userSql = "INSERT INTO "+ TABLES.USERS+" ("+USERS.ID+", "+ USERS.GENDER+", "+USERS.AGE+", "+USERS.HEIGHT_IN_INCHES
-                    +", "+USERS.ACTIVITY_LEVEL+", "+USERS.USERNAME+", "+USERS.PASSWORD+", "+USERS.FIRST_NAME+", "
-                    +USERS.LAST_NAME+", "+USERS.ACTIVE+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String userSql = "INSERT INTO "+ TABLES.USER+" ("+USER.ID+", "+ USER.GENDER+", "+USER.AGE+", "+USER.HEIGHT_IN_INCHES
+                    +", "+USER.ACTIVITY_LEVEL+", "+USER.USERNAME+", "+USER.PASSWORD+", "+USER.FIRST_NAME+", "
+                    +USER.LAST_NAME+", "+USER.IS_ACTIVE+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(userSql)) {
                 statement.setInt(1, userId);
                 statement.setString(2, user.getGender().toString());
@@ -212,9 +212,9 @@ public class LegacySQLiteWriter extends JDBCWriter {
                 int foodEatenId = getNextAvailableId(foodEatenIds.values());
                 foodEatenIds.put(foodEaten.getId(), foodEatenId);
 
-                String sql = "INSERT INTO "+TABLES.FOODS_EATEN+" ("+FOODS_EATEN.ID+", "+FOODS_EATEN.USER_ID+", "
-                        +FOODS_EATEN.FOOD_ID+", "+FOODS_EATEN.DATE+", "+FOODS_EATEN.SERVING_TYPE+", "
-                        +FOODS_EATEN.SERVING_QTY+") VALUES (?, ?, ?, ?, ? ,?)";
+                String sql = "INSERT INTO "+TABLES.FOOD_EATEN+" ("+FOOD_EATEN.ID+", "+FOOD_EATEN.USER_ID+", "
+                        +FOOD_EATEN.FOOD_ID+", "+FOOD_EATEN.DATE+", "+FOOD_EATEN.SERVING_TYPE+", "
+                        +FOOD_EATEN.SERVING_QTY+") VALUES (?, ?, ?, ?, ? ,?)";
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
                     statement.setInt(1, foodEatenId);
                     statement.setInt(2, userId);
@@ -234,9 +234,9 @@ public class LegacySQLiteWriter extends JDBCWriter {
                 int exercisePerfomedId = getNextAvailableId(exercisePerformedIds.values());
                 exercisePerformedIds.put(exercisePerformed.getId(), exercisePerfomedId);
 
-                String sql = "INSERT INTO "+TABLES.EXERCISES_PERFORMED+" ("+EXERCISES_PERFORMED.ID+", "
-                        +EXERCISES_PERFORMED.USER_ID+", "+EXERCISES_PERFORMED.EXERCISE_ID+", "
-                        +EXERCISES_PERFORMED.DATE+", "+EXERCISES_PERFORMED.MINUTES+") VALUES (?, ?, ?, ?, ?)";
+                String sql = "INSERT INTO "+TABLES.EXERCISE_PERFORMED+" ("+EXERCISE_PERFORMED.ID+", "
+                        +EXERCISE_PERFORMED.USER_ID+", "+EXERCISE_PERFORMED.EXERCISE_ID+", "
+                        +EXERCISE_PERFORMED.DATE+", "+EXERCISE_PERFORMED.MINUTES+") VALUES (?, ?, ?, ?, ?)";
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
                     statement.setInt(1, exercisePerfomedId);
                     statement.setInt(2, userId);
@@ -253,11 +253,11 @@ public class LegacySQLiteWriter extends JDBCWriter {
         int foodId = getNextAvailableId(foodIds.values());
         foodIds.put(food.getId(), foodId);
 
-        String sql = "INSERT INTO "+TABLES.FOODS+" ("+FOODS.ID+", "+FOODS.NAME+", "+FOODS.DEFAULT_SERVING_TYPE+", "
-                +FOODS.SERVING_TYPE_QTY+", "+FOODS.CALORIES+", "+FOODS.FAT+", "+FOODS.SATURATED_FAT+", "
-                +FOODS.CARBS+", "+FOODS.FIBER+", "+FOODS.SUGAR+", "+FOODS.PROTEIN+", "+FOODS.SODIUM;
+        String sql = "INSERT INTO "+TABLES.FOOD+" ("+FOOD.ID+", "+FOOD.NAME+", "+FOOD.DEFAULT_SERVING_TYPE+", "
+                +FOOD.SERVING_TYPE_QTY+", "+FOOD.CALORIES+", "+FOOD.FAT+", "+FOOD.SATURATED_FAT+", "
+                +FOOD.CARBS+", "+FOOD.FIBER+", "+FOOD.SUGAR+", "+FOOD.PROTEIN+", "+FOOD.SODIUM;
         sql += (ownerId != null && userIds.get(ownerId) != null)
-                ? ", "+FOODS.USER_ID+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                ? ", "+FOOD.USER_ID+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                 : ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try(PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setInt(1, foodId);

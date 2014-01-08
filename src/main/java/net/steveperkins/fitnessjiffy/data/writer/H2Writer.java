@@ -9,12 +9,12 @@ import net.steveperkins.fitnessjiffy.data.model.FoodEaten;
 import net.steveperkins.fitnessjiffy.data.model.User;
 import net.steveperkins.fitnessjiffy.data.model.Weight;
 import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.TABLES;
-import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.EXERCISES;
-import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.USERS;
+import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.EXERCISE;
+import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.USER;
 import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.WEIGHT;
-import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.FOODS_EATEN;
-import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.EXERCISES_PERFORMED;
-import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.FOODS;
+import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.FOOD_EATEN;
+import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.EXERCISE_PERFORMED;
+import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.FOOD;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -133,8 +133,8 @@ public class H2Writer extends JDBCWriter {
 
     private void writeExercises() throws SQLException {
         for(Exercise exercise : datastore.getExercises()) {
-            String sql = "INSERT INTO "+ TABLES.EXERCISES+" ("+ EXERCISES.ID+", "+EXERCISES.CATEGORY+", "
-                    +EXERCISES.CODE+", "+EXERCISES.DESCRIPTION+", "+EXERCISES.METABOLIC_EQUIVALENT
+            String sql = "INSERT INTO "+ TABLES.EXERCISE+" ("+ EXERCISE.ID+", "+EXERCISE.CATEGORY+", "
+                    +EXERCISE.CODE+", "+EXERCISE.DESCRIPTION+", "+EXERCISE.METABOLIC_EQUIVALENT
                     +") VALUES (?, ?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(sql)) {
                 statement.setObject(1, exercise.getId(), Types.BINARY);
@@ -155,9 +155,9 @@ public class H2Writer extends JDBCWriter {
 
     private void writeUsers() throws Exception {
         for(User user : datastore.getUsers()) {
-            String userSql = "INSERT INTO "+ TABLES.USERS+" ("+USERS.ID+", "+ USERS.GENDER+", "+USERS.AGE+", "+USERS.HEIGHT_IN_INCHES
-                    +", "+USERS.ACTIVITY_LEVEL+", "+USERS.USERNAME+", "+USERS.PASSWORD+", "+USERS.FIRST_NAME+", "
-                    +USERS.LAST_NAME+", "+USERS.ACTIVE+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String userSql = "INSERT INTO "+ TABLES.USER +" ("+USER.ID+", "+ USER.GENDER+", "+USER.AGE+", "+USER.HEIGHT_IN_INCHES
+                    +", "+USER.ACTIVITY_LEVEL+", "+USER.USERNAME+", "+USER.PASSWORD+", "+USER.FIRST_NAME+", "
+                    +USER.LAST_NAME+", "+USER.IS_ACTIVE+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(userSql)) {
                 statement.setObject(1, user.getId(), Types.BINARY);
                 statement.setString(2, user.getGender().toString());
@@ -189,9 +189,9 @@ public class H2Writer extends JDBCWriter {
             }
 
             for(FoodEaten foodEaten : user.getFoodsEaten()) {
-                String sql = "INSERT INTO "+TABLES.FOODS_EATEN+" ("+FOODS_EATEN.ID+", "+FOODS_EATEN.USER_ID+", "
-                        +FOODS_EATEN.FOOD_ID+", "+FOODS_EATEN.DATE+", "+FOODS_EATEN.SERVING_TYPE+", "
-                        +FOODS_EATEN.SERVING_QTY+") VALUES (?, ?, ?, ?, ? ,?)";
+                String sql = "INSERT INTO "+TABLES.FOOD_EATEN+" ("+FOOD_EATEN.ID+", "+FOOD_EATEN.USER_ID+", "
+                        +FOOD_EATEN.FOOD_ID+", "+FOOD_EATEN.DATE+", "+FOOD_EATEN.SERVING_TYPE+", "
+                        +FOOD_EATEN.SERVING_QTY+") VALUES (?, ?, ?, ?, ? ,?)";
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
                     statement.setObject(1, foodEaten.getId(), Types.BINARY);
                     statement.setObject(2, user.getId(), Types.BINARY);
@@ -204,9 +204,9 @@ public class H2Writer extends JDBCWriter {
             }
 
             for(ExercisePerformed exercisePerformed : user.getExercisesPerformed()) {
-                String sql = "INSERT INTO "+TABLES.EXERCISES_PERFORMED+" ("+EXERCISES_PERFORMED.ID+", "
-                        +EXERCISES_PERFORMED.USER_ID+", "+EXERCISES_PERFORMED.EXERCISE_ID+", "
-                        +EXERCISES_PERFORMED.DATE+", "+EXERCISES_PERFORMED.MINUTES+") VALUES (?, ?, ?, ?, ?)";
+                String sql = "INSERT INTO "+TABLES.EXERCISE_PERFORMED+" ("+EXERCISE_PERFORMED.ID+", "
+                        +EXERCISE_PERFORMED.USER_ID+", "+EXERCISE_PERFORMED.EXERCISE_ID+", "
+                        +EXERCISE_PERFORMED.DATE+", "+EXERCISE_PERFORMED.MINUTES+") VALUES (?, ?, ?, ?, ?)";
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
                     statement.setObject(1, exercisePerformed.getId(), Types.BINARY);
                     statement.setObject(2, user.getId(), Types.BINARY);
@@ -220,11 +220,11 @@ public class H2Writer extends JDBCWriter {
     }
 
     private void writeFood(Food food, UUID ownerId) throws SQLException {
-        String sql = "INSERT INTO "+TABLES.FOODS+" ("+FOODS.ID+", "+FOODS.NAME+", "+FOODS.DEFAULT_SERVING_TYPE+", "
-                +FOODS.SERVING_TYPE_QTY+", "+FOODS.CALORIES+", "+FOODS.FAT+", "+FOODS.SATURATED_FAT+", "
-                +FOODS.CARBS+", "+FOODS.FIBER+", "+FOODS.SUGAR+", "+FOODS.PROTEIN+", "+FOODS.SODIUM;
+        String sql = "INSERT INTO "+TABLES.FOOD+" ("+FOOD.ID+", "+FOOD.NAME+", "+FOOD.DEFAULT_SERVING_TYPE+", "
+                +FOOD.SERVING_TYPE_QTY+", "+FOOD.CALORIES+", "+FOOD.FAT+", "+FOOD.SATURATED_FAT+", "
+                +FOOD.CARBS+", "+FOOD.FIBER+", "+FOOD.SUGAR+", "+FOOD.PROTEIN+", "+FOOD.SODIUM;
         sql += (ownerId != null)
-                ? ", "+FOODS.USER_ID+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                ? ", "+FOOD.USER_ID+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                 : ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try(PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setObject(1, food.getId(), Types.BINARY);
