@@ -1,4 +1,4 @@
-package net.steveperkins.fitnessjiffy.data.model;
+package net.steveperkins.fitnessjiffy.etl.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -24,6 +24,9 @@ public class Exercise {
         this.metabolicEquivalent = metabolicEquivalent;
         this.category = category;
         this.description = description;
+    }
+
+    public Exercise() {
     }
 
     public UUID getId() {

@@ -1,20 +1,19 @@
-package net.steveperkins.fitnessjiffy.data.writer;
+package net.steveperkins.fitnessjiffy.etl.writer;
 
-import com.google.common.base.Preconditions;
-import net.steveperkins.fitnessjiffy.data.model.Datastore;
-import net.steveperkins.fitnessjiffy.data.model.Exercise;
-import net.steveperkins.fitnessjiffy.data.model.ExercisePerformed;
-import net.steveperkins.fitnessjiffy.data.model.Food;
-import net.steveperkins.fitnessjiffy.data.model.FoodEaten;
-import net.steveperkins.fitnessjiffy.data.model.User;
-import net.steveperkins.fitnessjiffy.data.model.Weight;
-import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.TABLES;
-import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.EXERCISE;
-import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.USER;
-import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.WEIGHT;
-import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.FOOD_EATEN;
-import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.EXERCISE_PERFORMED;
-import net.steveperkins.fitnessjiffy.data.reader.JDBCReader.FOOD;
+import net.steveperkins.fitnessjiffy.etl.model.Datastore;
+import net.steveperkins.fitnessjiffy.etl.model.Exercise;
+import net.steveperkins.fitnessjiffy.etl.model.ExercisePerformed;
+import net.steveperkins.fitnessjiffy.etl.model.Food;
+import net.steveperkins.fitnessjiffy.etl.model.FoodEaten;
+import net.steveperkins.fitnessjiffy.etl.model.User;
+import net.steveperkins.fitnessjiffy.etl.model.Weight;
+import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader.TABLES;
+import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader.EXERCISE;
+import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader.USER;
+import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader.WEIGHT;
+import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader.FOOD_EATEN;
+import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader.EXERCISE_PERFORMED;
+import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader.FOOD;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -31,7 +30,7 @@ public class H2Writer extends JDBCWriter {
 
     @Override
     public void write() throws Exception {
-        Preconditions.checkState(!connection.isClosed());
+        if(connection.isClosed()) throw new IllegalStateException();
         connection.setAutoCommit(false);
 
         writeSchema();

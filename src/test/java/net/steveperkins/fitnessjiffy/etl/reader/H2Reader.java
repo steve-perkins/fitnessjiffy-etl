@@ -1,14 +1,13 @@
-package net.steveperkins.fitnessjiffy.data.reader;
+package net.steveperkins.fitnessjiffy.etl.reader;
 
-import com.google.common.base.Preconditions;
-import net.steveperkins.fitnessjiffy.data.model.Datastore;
-import net.steveperkins.fitnessjiffy.data.model.Exercise;
-import net.steveperkins.fitnessjiffy.data.model.ExercisePerformed;
-import net.steveperkins.fitnessjiffy.data.model.Food;
-import net.steveperkins.fitnessjiffy.data.model.FoodEaten;
-import net.steveperkins.fitnessjiffy.data.model.User;
-import net.steveperkins.fitnessjiffy.data.model.Weight;
-import net.steveperkins.fitnessjiffy.data.util.NoNullsSet;
+import net.steveperkins.fitnessjiffy.etl.model.Datastore;
+import net.steveperkins.fitnessjiffy.etl.model.Exercise;
+import net.steveperkins.fitnessjiffy.etl.model.ExercisePerformed;
+import net.steveperkins.fitnessjiffy.etl.model.Food;
+import net.steveperkins.fitnessjiffy.etl.model.FoodEaten;
+import net.steveperkins.fitnessjiffy.etl.model.User;
+import net.steveperkins.fitnessjiffy.etl.model.Weight;
+import net.steveperkins.fitnessjiffy.etl.util.NoNullsSet;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -25,8 +24,7 @@ public class H2Reader extends JDBCReader {
 
     @Override
     public Datastore read() throws Exception {
-        Preconditions.checkState(!connection.isClosed());
-
+        if(connection.isClosed()) throw new IllegalStateException();
         Datastore datastore = new Datastore();
 
         // Load exercises

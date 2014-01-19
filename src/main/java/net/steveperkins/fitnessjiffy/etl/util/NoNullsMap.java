@@ -1,18 +1,8 @@
-package net.steveperkins.fitnessjiffy.data.util;
-
-import com.google.common.collect.ForwardingMap;
+package net.steveperkins.fitnessjiffy.etl.util;
 
 import java.util.HashMap;
-import java.util.Map;
 
-public class NoNullsMap<K, V> extends ForwardingMap<K, V> {
-
-    final Map<K, V> delegate = new HashMap<K, V>();
-
-    @Override
-    protected Map<K, V> delegate() {
-        return delegate;
-    }
+public class NoNullsMap<K, V> extends HashMap<K, V> {
 
     @Override
     public V put(K key, V value) {

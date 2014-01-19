@@ -1,4 +1,4 @@
-package net.steveperkins.fitnessjiffy.data.model;
+package net.steveperkins.fitnessjiffy.etl.model;
 
 import java.util.Date;
 import java.util.UUID;
@@ -17,6 +17,9 @@ public class FoodEaten {
         this.date = date;
         this.servingType = servingType;
         this.servingQty = servingQty;
+    }
+
+    public FoodEaten() {
     }
 
     public UUID getId() {

@@ -1,7 +1,6 @@
-package net.steveperkins.fitnessjiffy.data.writer;
+package net.steveperkins.fitnessjiffy.etl.writer;
 
-import com.google.common.base.Preconditions;
-import net.steveperkins.fitnessjiffy.data.model.Datastore;
+import net.steveperkins.fitnessjiffy.etl.model.Datastore;
 
 import java.sql.Connection;
 
@@ -11,9 +10,8 @@ public abstract class JDBCWriter {
     protected Datastore datastore;
 
     public JDBCWriter(Connection connection, Datastore datastore) {
-        Preconditions.checkNotNull(connection);
-        Preconditions.checkNotNull(datastore);
-
+        if(connection == null) throw new NullPointerException();
+        if(datastore == null) throw new NullPointerException();
         this.connection = connection;
         this.datastore = datastore;
     }

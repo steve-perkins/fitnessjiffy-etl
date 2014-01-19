@@ -1,7 +1,6 @@
-package net.steveperkins.fitnessjiffy.data.reader;
+package net.steveperkins.fitnessjiffy.etl.reader;
 
-import com.google.common.base.Preconditions;
-import net.steveperkins.fitnessjiffy.data.model.Datastore;
+import net.steveperkins.fitnessjiffy.etl.model.Datastore;
 
 import java.sql.Connection;
 
@@ -76,8 +75,7 @@ public abstract class JDBCReader {
     protected Connection connection;
 
     public JDBCReader(Connection connection) {
-        Preconditions.checkNotNull(connection);
-
+        if(connection == null) throw new NullPointerException();
         this.connection = connection;
     }
 

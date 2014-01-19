@@ -1,4 +1,4 @@
-package net.steveperkins.fitnessjiffy.data.model;
+package net.steveperkins.fitnessjiffy.etl.model;
 
 import java.util.UUID;
 
@@ -70,6 +70,9 @@ public class Food {
         this.sugar = sugar;
         this.protein = protein;
         this.sodium = sodium;
+    }
+
+    public Food() {
     }
 
     public UUID getId() {

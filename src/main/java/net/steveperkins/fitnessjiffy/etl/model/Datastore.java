@@ -1,27 +1,28 @@
-package net.steveperkins.fitnessjiffy.data.model;
+package net.steveperkins.fitnessjiffy.etl.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.steveperkins.fitnessjiffy.data.util.NoNullsSet;
+import net.steveperkins.fitnessjiffy.etl.util.NoNullsSet;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 
 public class Datastore {
 
-    private NoNullsSet<User> users = new NoNullsSet<>();
-    private NoNullsSet<Food> globalFoods = new NoNullsSet<>();
-    private NoNullsSet<Exercise> exercises = new NoNullsSet<>();
+    private Set<User> users = new NoNullsSet<>();
+    private Set<Food> globalFoods = new NoNullsSet<>();
+    private Set<Exercise> exercises = new NoNullsSet<>();
 
-    public NoNullsSet<User> getUsers() {
+    public Set<User> getUsers() {
         return users;
     }
 
-    public NoNullsSet<Food> getGlobalFoods() {
+    public Set<Food> getGlobalFoods() {
         return globalFoods;
     }
 
-    public NoNullsSet<Exercise> getExercises() {
+    public Set<Exercise> getExercises() {
         return exercises;
     }
 

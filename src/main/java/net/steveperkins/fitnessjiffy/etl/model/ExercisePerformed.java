@@ -1,4 +1,4 @@
-package net.steveperkins.fitnessjiffy.data.model;
+package net.steveperkins.fitnessjiffy.etl.model;
 
 import java.util.Date;
 import java.util.UUID;
@@ -15,6 +15,9 @@ public class ExercisePerformed {
         this.exerciseId = exerciseId;
         this.date = date;
         this.minutes = minutes;
+    }
+
+    public ExercisePerformed() {
     }
 
     public UUID getId() {

@@ -1,8 +1,8 @@
-package net.steveperkins.fitnessjiffy.data.test;
+package net.steveperkins.fitnessjiffy.etl.test;
 
-import net.steveperkins.fitnessjiffy.data.model.Datastore;
-import net.steveperkins.fitnessjiffy.data.reader.LegacySQLiteReader;
-import net.steveperkins.fitnessjiffy.data.writer.LegacySQLiteWriter;
+import net.steveperkins.fitnessjiffy.etl.model.Datastore;
+import net.steveperkins.fitnessjiffy.etl.reader.H2Reader;
+import net.steveperkins.fitnessjiffy.etl.writer.H2Writer;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -12,16 +12,16 @@ import java.sql.DriverManager;
 
 import static junit.framework.TestCase.assertEquals;
 
-public class LegacySQLiteTests {
+public class H2Tests {
 
     private final String CURRENT_WORKING_DIRECTORY = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
-    private final int EXPECTED_JSON_STRING_LENGTH = 3472663;
-    private final int EXPECTED_JSON_FILE_LENGTH = 3472810;
+    private final int EXPECTED_JSON_STRING_LENGTH = 3452626;
+    private final int EXPECTED_JSON_FILE_LENGTH = 3452773;
 
     @Before
     public void before() throws Exception {
         Class.forName("org.sqlite.JDBC");
-        cleanFileInWorkingDirectory("sqlite-temp.db");
+        cleanFileInWorkingDirectory("sqlite-temp.h2.db");
         cleanFileInWorkingDirectory("h2-temp.h2.db");
         cleanFileInWorkingDirectory("output.json");
     }
@@ -38,15 +38,15 @@ public class LegacySQLiteTests {
 
     @Test
     public void canReadTest() throws Exception {
-        Connection connection = DriverManager.getConnection("jdbc:sqlite:" + CURRENT_WORKING_DIRECTORY + "sqlite.db");
+        Connection connection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2");
 
         // Test conversion to JSON string
-        String jsonString = new LegacySQLiteReader(connection).read().toJSONString();
+        String jsonString = new H2Reader(connection).read().toJSONString();
         assertEquals(EXPECTED_JSON_STRING_LENGTH, jsonString.length());
 
         // Test output to JSON file
         File jsonFile = new File(CURRENT_WORKING_DIRECTORY + "output.json");
-        new LegacySQLiteReader(connection).read().toJSONFile(jsonFile);
+        new H2Reader(connection).read().toJSONFile(jsonFile);
         assertEquals(EXPECTED_JSON_FILE_LENGTH, jsonFile.length());
 
         connection.close();
@@ -55,18 +55,18 @@ public class LegacySQLiteTests {
     @Test
     public void canWriteTest() throws Exception {
         // Read the existing database
-        Connection readConnection = DriverManager.getConnection("jdbc:sqlite:" + CURRENT_WORKING_DIRECTORY + "sqlite.db");
-        Datastore datastore = new LegacySQLiteReader(readConnection).read();
+        Connection readConnection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2");
+        Datastore datastore = new H2Reader(readConnection).read();
         readConnection.close();
 
         // Write its contents to a new database
-        Connection writeConnection = DriverManager.getConnection("jdbc:sqlite:" + CURRENT_WORKING_DIRECTORY + "sqlite-temp.db");
-        new LegacySQLiteWriter(writeConnection, datastore).write();
+        Connection writeConnection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2-temp");
+        new H2Writer(writeConnection, datastore).write();
         writeConnection.close();
 
-        // Do a round-trip read of the new database, and confirm its data has the same expected size
-        Connection confirmationConnection = DriverManager.getConnection("jdbc:sqlite:" + CURRENT_WORKING_DIRECTORY + "sqlite-temp.db");
-        Datastore newDatastore = new LegacySQLiteReader(confirmationConnection).read();
+        // Do a round-trip read of the new database, and confirm its etl has the same expected size
+        Connection confirmationConnection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2-temp");
+        Datastore newDatastore = new H2Reader(confirmationConnection).read();
         confirmationConnection.close();
         assertEquals(newDatastore.getExercises().size(), datastore.getExercises().size());
         assertEquals(newDatastore.getGlobalFoods().size(), datastore.getGlobalFoods().size());

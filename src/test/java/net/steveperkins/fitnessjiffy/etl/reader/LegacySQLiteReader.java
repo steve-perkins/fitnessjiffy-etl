@@ -1,17 +1,16 @@
-package net.steveperkins.fitnessjiffy.data.reader;
+package net.steveperkins.fitnessjiffy.etl.reader;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Preconditions;
-import net.steveperkins.fitnessjiffy.data.model.Datastore;
-import net.steveperkins.fitnessjiffy.data.model.Exercise;
-import net.steveperkins.fitnessjiffy.data.model.ExercisePerformed;
-import net.steveperkins.fitnessjiffy.data.model.Food;
-import net.steveperkins.fitnessjiffy.data.model.FoodEaten;
-import net.steveperkins.fitnessjiffy.data.model.User;
-import net.steveperkins.fitnessjiffy.data.model.Weight;
-import net.steveperkins.fitnessjiffy.data.util.NoNullsMap;
-import net.steveperkins.fitnessjiffy.data.util.NoNullsSet;
+import net.steveperkins.fitnessjiffy.etl.model.Datastore;
+import net.steveperkins.fitnessjiffy.etl.model.Exercise;
+import net.steveperkins.fitnessjiffy.etl.model.ExercisePerformed;
+import net.steveperkins.fitnessjiffy.etl.model.Food;
+import net.steveperkins.fitnessjiffy.etl.model.FoodEaten;
+import net.steveperkins.fitnessjiffy.etl.model.User;
+import net.steveperkins.fitnessjiffy.etl.model.Weight;
+import net.steveperkins.fitnessjiffy.etl.util.NoNullsMap;
+import net.steveperkins.fitnessjiffy.etl.util.NoNullsSet;
 
 import java.io.InputStream;
 import java.sql.Connection;
@@ -99,13 +98,13 @@ public class LegacySQLiteReader extends JDBCReader {
 
     @Override
     public Datastore read() throws Exception {
-        Preconditions.checkState(!connection.isClosed());
+        if(connection.isClosed()) throw new IllegalStateException();
 
         Datastore datastore = new Datastore();
 
         // Load exercises
         InputStream exerciseJsonStream = this.getClass().getResourceAsStream(EXERCISES_JSON_PATH);
-        NoNullsSet<Exercise> exercises = new ObjectMapper().readValue(exerciseJsonStream, new TypeReference<NoNullsSet<Exercise>>() {});
+        Set<Exercise> exercises = new ObjectMapper().readValue(exerciseJsonStream, new TypeReference<NoNullsSet<Exercise>>() {});
         for(Exercise exercise : exercises) exercise.setDescription(exercise.getDescription().trim());
         datastore.getExercises().addAll(exercises);
 

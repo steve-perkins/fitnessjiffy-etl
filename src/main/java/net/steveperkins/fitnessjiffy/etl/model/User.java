@@ -1,6 +1,6 @@
-package net.steveperkins.fitnessjiffy.data.model;
+package net.steveperkins.fitnessjiffy.etl.model;
 
-import net.steveperkins.fitnessjiffy.data.util.NoNullsSet;
+import net.steveperkins.fitnessjiffy.etl.util.NoNullsSet;
 
 import java.util.Set;
 import java.util.UUID;
@@ -19,7 +19,7 @@ public class User {
         }
         @Override
         public String toString() {
-            return super.toString().toLowerCase();
+            return super.toString();
         }
     }
 
@@ -94,6 +94,9 @@ public class User {
         this.foods = foods;
         this.foodsEaten = foodsEaten;
         this.exercisesPerformed = exercisesPerformed;
+    }
+
+    public User() {
     }
 
     public UUID getId() {

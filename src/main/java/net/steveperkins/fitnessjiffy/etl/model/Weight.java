@@ -1,4 +1,4 @@
-package net.steveperkins.fitnessjiffy.data.model;
+package net.steveperkins.fitnessjiffy.etl.model;
 
 import java.util.Date;
 import java.util.UUID;
@@ -13,6 +13,9 @@ public class Weight {
         this.id = id;
         this.date = date;
         this.pounds = pounds;
+    }
+
+    public Weight() {
     }
 
     public UUID getId() {

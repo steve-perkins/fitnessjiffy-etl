@@ -1,8 +1,8 @@
-package net.steveperkins.fitnessjiffy.data.test;
+package net.steveperkins.fitnessjiffy.etl.test;
 
-import net.steveperkins.fitnessjiffy.data.model.Datastore;
-import net.steveperkins.fitnessjiffy.data.reader.LegacySQLiteReader;
-import net.steveperkins.fitnessjiffy.data.writer.H2Writer;
+import net.steveperkins.fitnessjiffy.etl.model.Datastore;
+import net.steveperkins.fitnessjiffy.etl.reader.LegacySQLiteReader;
+import net.steveperkins.fitnessjiffy.etl.writer.H2Writer;
 import org.junit.Before;
 import org.junit.Test;
 
