@@ -1,7 +1,6 @@
 package net.steveperkins.fitnessjiffy.etl.model;
 
-import net.steveperkins.fitnessjiffy.etl.util.NoNullsSet;
-
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -72,10 +71,10 @@ public class User {
     private String lastName;
     private boolean isActive;
 
-    private Set<Weight> weights = new NoNullsSet<>();
-    private Set<Food> foods = new NoNullsSet<>();
-    private Set<FoodEaten> foodsEaten = new NoNullsSet<>();
-    private Set<ExercisePerformed> exercisesPerformed = new NoNullsSet<>();
+    private Set<Weight> weights = new HashSet<>();
+    private Set<Food> foods = new HashSet<>();
+    private Set<FoodEaten> foodsEaten = new HashSet<>();
+    private Set<ExercisePerformed> exercisesPerformed = new HashSet<>();
 
     public User(UUID id, Gender gender, int age, double heightInInches, ActivityLevel activityLevel, String username,
                 String password, String firstName, String lastName, boolean isActive, Set<Weight> weights,

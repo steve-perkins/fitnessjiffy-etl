@@ -7,12 +7,12 @@ import net.steveperkins.fitnessjiffy.etl.model.Food;
 import net.steveperkins.fitnessjiffy.etl.model.FoodEaten;
 import net.steveperkins.fitnessjiffy.etl.model.User;
 import net.steveperkins.fitnessjiffy.etl.model.Weight;
-import net.steveperkins.fitnessjiffy.etl.util.NoNullsSet;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -85,7 +85,7 @@ public class H2Reader extends JDBCReader {
         byte[] userId = rs.getBytes(USER.ID);
 
         // Weights
-        Set<Weight> weights = new NoNullsSet<>();
+        Set<Weight> weights = new HashSet<>();
         try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.WEIGHT+" WHERE "+WEIGHT.USER_ID+" = ?") ) {
             statement.setBytes(1, userId);
             try ( ResultSet weightsResultSet = statement.executeQuery() ) {
@@ -101,7 +101,7 @@ public class H2Reader extends JDBCReader {
         }
 
         // User-owned foods
-        Set<Food> foods = new NoNullsSet<>();
+        Set<Food> foods = new HashSet<>();
         try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOOD+" WHERE "+FOOD.USER_ID+" = ?") ) {
             statement.setBytes(1, userId);
             try ( ResultSet userFoodResultSet = statement.executeQuery() ) {
@@ -126,7 +126,7 @@ public class H2Reader extends JDBCReader {
         }
 
         // Foods eaten
-        Set<FoodEaten> foodsEaten = new NoNullsSet<>();
+        Set<FoodEaten> foodsEaten = new HashSet<>();
         try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOOD_EATEN+" WHERE "+FOOD_EATEN.USER_ID+" = ?") ) {
             statement.setBytes(1, userId);
             try ( ResultSet foodsEatenResultSet = statement.executeQuery() ) {
@@ -144,7 +144,7 @@ public class H2Reader extends JDBCReader {
         }
 
         // Exercises performed
-        Set<ExercisePerformed> exercisesPerformed = new NoNullsSet<>();
+        Set<ExercisePerformed> exercisesPerformed = new HashSet<>();
         try ( PreparedStatement statement = connection.prepareStatement(
                 "SELECT * FROM "+TABLES.EXERCISE_PERFORMED+" WHERE "+TABLES.EXERCISE_PERFORMED+"."+EXERCISE_PERFORMED.USER_ID+" = ?") ) {
             statement.setBytes(1, userId);

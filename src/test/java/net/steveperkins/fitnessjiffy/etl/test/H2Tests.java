@@ -14,9 +14,9 @@ import static junit.framework.TestCase.assertEquals;
 
 public class H2Tests {
 
+    private static final int EXPECTED_JSON_STRING_LENGTH = 3452626;
+    private static final int EXPECTED_JSON_FILE_LENGTH = 3452773;
     private final String CURRENT_WORKING_DIRECTORY = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
-    private final int EXPECTED_JSON_STRING_LENGTH = 3452626;
-    private final int EXPECTED_JSON_FILE_LENGTH = 3452773;
 
     @Before
     public void before() throws Exception {

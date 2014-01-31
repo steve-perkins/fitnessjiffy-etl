@@ -9,8 +9,6 @@ import net.steveperkins.fitnessjiffy.etl.model.Food;
 import net.steveperkins.fitnessjiffy.etl.model.FoodEaten;
 import net.steveperkins.fitnessjiffy.etl.model.User;
 import net.steveperkins.fitnessjiffy.etl.model.Weight;
-import net.steveperkins.fitnessjiffy.etl.util.NoNullsMap;
-import net.steveperkins.fitnessjiffy.etl.util.NoNullsSet;
 
 import java.io.InputStream;
 import java.sql.Connection;
@@ -18,6 +16,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -53,8 +54,8 @@ public class LegacySQLiteReader extends JDBCReader {
     public interface EXERCISE_PERFORMED extends JDBCReader.EXERCISE_PERFORMED {
     }
 
-    private final NoNullsMap<Integer, UUID> foodIds = new NoNullsMap<>();
-    private final NoNullsMap<String, UUID> exerciseIds = new NoNullsMap<String, UUID>() {{
+    private final Map<Integer, UUID> foodIds = new HashMap<>();
+    private final Map<String, UUID> exerciseIds = new HashMap<String, UUID>() {{
         put("Yoga, Hatha (32 years - 265 lbs)",                     UUID.fromString("6cf6d7de-abe9-4981-bea4-bb45c8d8088e"));  // code: 02150
         put("yoga, Hatha",                                          UUID.fromString("6cf6d7de-abe9-4981-bea4-bb45c8d8088e"));
         put("Elliptical machine (14 cal/min)",                      UUID.fromString("fa0faf6f-90d7-446f-b8ba-a27f5bc80e72"));  // 02048
@@ -104,7 +105,7 @@ public class LegacySQLiteReader extends JDBCReader {
 
         // Load exercises
         InputStream exerciseJsonStream = this.getClass().getResourceAsStream(EXERCISES_JSON_PATH);
-        Set<Exercise> exercises = new ObjectMapper().readValue(exerciseJsonStream, new TypeReference<NoNullsSet<Exercise>>() {});
+        Set<Exercise> exercises = new ObjectMapper().readValue(exerciseJsonStream, new TypeReference<Set<Exercise>>() {});
         for(Exercise exercise : exercises) exercise.setDescription(exercise.getDescription().trim());
         datastore.getExercises().addAll(exercises);
 
@@ -160,7 +161,7 @@ public class LegacySQLiteReader extends JDBCReader {
             throw new Exception("Malformed user with ID: " + id + ", no active flag");
 
         // Weights
-        Set<Weight> weights = new NoNullsSet<>();
+        Set<Weight> weights = new HashSet<>();
         try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.WEIGHT+" WHERE "+WEIGHT.USER_ID+" = ?") ) {
             statement.setInt(1, id);
             try ( ResultSet weightsResultSet = statement.executeQuery() ) {
@@ -171,7 +172,7 @@ public class LegacySQLiteReader extends JDBCReader {
         }
 
         // User-owned foods
-        Set<Food> foods = new NoNullsSet<>();
+        Set<Food> foods = new HashSet<>();
         try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOOD+" WHERE "+FOOD.USER_ID+" = ?") ) {
             statement.setInt(1, id);
             try ( ResultSet userFoodResultSet = statement.executeQuery() ) {
@@ -182,7 +183,7 @@ public class LegacySQLiteReader extends JDBCReader {
         }
 
         // Foods eaten
-        Set<FoodEaten> foodsEaten = new NoNullsSet<>();
+        Set<FoodEaten> foodsEaten = new HashSet<>();
         try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOOD_EATEN+" WHERE "+FOOD_EATEN.USER_ID+" = ?") ) {
             statement.setInt(1, id);
             try ( ResultSet foodsEatenResultSet = statement.executeQuery() ) {
@@ -193,7 +194,7 @@ public class LegacySQLiteReader extends JDBCReader {
         }
 
         // Exercises performed
-        Set<ExercisePerformed> exercisesPerformed = new NoNullsSet<>();
+        Set<ExercisePerformed> exercisesPerformed = new HashSet<>();
         try ( PreparedStatement statement = connection.prepareStatement(
                 "SELECT "+TABLES.EXERCISE_PERFORMED+".*, "+TABLES.EXERCISE+"."+EXERCISE.NAME
                         +" FROM "+TABLES.EXERCISE_PERFORMED+", "+TABLES.EXERCISE

@@ -2,17 +2,17 @@ package net.steveperkins.fitnessjiffy.etl.model;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import net.steveperkins.fitnessjiffy.etl.util.NoNullsSet;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 
 public class Datastore {
 
-    private Set<User> users = new NoNullsSet<>();
-    private Set<Food> globalFoods = new NoNullsSet<>();
-    private Set<Exercise> exercises = new NoNullsSet<>();
+    private Set<User> users = new HashSet<>();
+    private Set<Food> globalFoods = new HashSet<>();
+    private Set<Exercise> exercises = new HashSet<>();
 
     public Set<User> getUsers() {
         return users;

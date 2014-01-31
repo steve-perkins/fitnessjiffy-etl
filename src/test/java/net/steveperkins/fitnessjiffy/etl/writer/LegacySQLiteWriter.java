@@ -14,7 +14,6 @@ import net.steveperkins.fitnessjiffy.etl.reader.LegacySQLiteReader.USER;
 import net.steveperkins.fitnessjiffy.etl.reader.LegacySQLiteReader.WEIGHT;
 import net.steveperkins.fitnessjiffy.etl.reader.LegacySQLiteReader.FOOD_EATEN;
 import net.steveperkins.fitnessjiffy.etl.reader.LegacySQLiteReader.EXERCISE_PERFORMED;
-import net.steveperkins.fitnessjiffy.etl.util.NoNullsMap;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -25,17 +24,19 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class LegacySQLiteWriter extends JDBCWriter {
 
-    private final NoNullsMap<UUID, Integer> userIds = new NoNullsMap<>();
-    private final NoNullsMap<UUID, Integer> exerciseIds = new NoNullsMap<>();
-    private final NoNullsMap<UUID, Integer> foodIds = new NoNullsMap<>();
-    private final NoNullsMap<UUID, Integer> weightIds = new NoNullsMap<>();
-    private final NoNullsMap<UUID, Integer> foodEatenIds = new NoNullsMap<>();
-    private final NoNullsMap<UUID, Integer> exercisePerformedIds = new NoNullsMap<>();
+    private final Map<UUID, Integer> userIds = new HashMap<>();
+    private final Map<UUID, Integer> exerciseIds = new HashMap<>();
+    private final Map<UUID, Integer> foodIds = new HashMap<>();
+    private final Map<UUID, Integer> weightIds = new HashMap<>();
+    private final Map<UUID, Integer> foodEatenIds = new HashMap<>();
+    private final Map<UUID, Integer> exercisePerformedIds = new HashMap<>();
 
     private final DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 
