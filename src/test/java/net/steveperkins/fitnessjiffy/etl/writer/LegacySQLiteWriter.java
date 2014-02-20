@@ -216,11 +216,16 @@ public class LegacySQLiteWriter extends JDBCWriter {
                         +FOOD_EATEN.FOOD_ID+", "+FOOD_EATEN.DATE+", "+FOOD_EATEN.SERVING_TYPE+", "
                         +FOOD_EATEN.SERVING_QTY+") VALUES (?, ?, ?, ?, ? ,?)";
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                    String servingType = foodEaten.getServingType().toString();
+                    if(!servingType.equals("CUSTOM")) {
+                        servingType = servingType.toLowerCase();
+                    }
+
                     statement.setInt(1, foodEatenId);
                     statement.setInt(2, userId);
                     statement.setInt(3, foodIds.get(foodEaten.getFoodId()));
                     statement.setString(4, dateFormatter.format(foodEaten.getDate()));
-                    statement.setString(5, foodEaten.getServingType().toString());
+                    statement.setString(5, servingType);
                     statement.setFloat(6, foodEaten.getServingQty().floatValue());
                     statement.executeUpdate();
                 }
@@ -260,9 +265,14 @@ public class LegacySQLiteWriter extends JDBCWriter {
                 ? ", "+FOOD.USER_ID+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                 : ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try(PreparedStatement statement = connection.prepareStatement(sql)) {
+            String defaultServingType = food.getDefaultServingType().toString();
+            if(!defaultServingType.equals("CUSTOM")) {
+                defaultServingType = defaultServingType.toLowerCase();
+            }
+
             statement.setInt(1, foodId);
             statement.setString(2, food.getName());
-            statement.setString(3, food.getDefaultServingType().toString());
+            statement.setString(3, defaultServingType);
             statement.setFloat(4, food.getServingTypeQty().floatValue());
             statement.setInt(5, food.getCalories());
             statement.setFloat(6, food.getFat().floatValue());

@@ -23,7 +23,7 @@ public class LegacySQLiteTests {
         Class.forName("org.sqlite.JDBC");
         cleanFileInWorkingDirectory("sqlite-temp.db");
         cleanFileInWorkingDirectory("h2-temp.h2.db");
-        cleanFileInWorkingDirectory("output.json");
+//        cleanFileInWorkingDirectory("output.json");
     }
 
     private void cleanFileInWorkingDirectory(String name) throws Exception {
