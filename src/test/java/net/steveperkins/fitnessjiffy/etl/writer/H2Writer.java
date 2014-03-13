@@ -1,26 +1,10 @@
 package net.steveperkins.fitnessjiffy.etl.writer;
 
 import net.steveperkins.fitnessjiffy.etl.model.Datastore;
-import net.steveperkins.fitnessjiffy.etl.model.Exercise;
-import net.steveperkins.fitnessjiffy.etl.model.ExercisePerformed;
-import net.steveperkins.fitnessjiffy.etl.model.Food;
-import net.steveperkins.fitnessjiffy.etl.model.FoodEaten;
-import net.steveperkins.fitnessjiffy.etl.model.User;
-import net.steveperkins.fitnessjiffy.etl.model.Weight;
-import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader.TABLES;
-import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader.EXERCISE;
-import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader.USER;
-import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader.WEIGHT;
-import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader.FOOD_EATEN;
-import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader.EXERCISE_PERFORMED;
-import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader.FOOD;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.sql.Types;
-import java.util.UUID;
 
 public class H2Writer extends JDBCWriter {
 
@@ -29,19 +13,7 @@ public class H2Writer extends JDBCWriter {
     }
 
     @Override
-    public void write() throws Exception {
-        if(connection.isClosed()) throw new IllegalStateException();
-        connection.setAutoCommit(false);
-
-        writeSchema();
-        writeExercises();
-        writeGlobalFoods();
-        writeUsers();
-
-        connection.commit();
-    }
-
-    private void writeSchema() throws SQLException {
+    protected void writeSchema() throws SQLException {
         String ddl = "CREATE USER IF NOT EXISTS \"\" SALT '' HASH '' ADMIN;\n" +
                 "\n" +
                 "DROP TABLE IF EXISTS PUBLIC.EXERCISE_PERFORMED;\n" +
@@ -126,122 +98,6 @@ public class H2Writer extends JDBCWriter {
                 "ALTER TABLE PUBLIC.FOOD_EATEN ADD CONSTRAINT PUBLIC.FK_B2EBA9C847514F7FB0D623FDB1B FOREIGN KEY(USER_ID) REFERENCES PUBLIC.FITNESSJIFFY_USER(ID) NOCHECK;\n";
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate(ddl);
-        }
-
-    }
-
-    private void writeExercises() throws SQLException {
-        for(Exercise exercise : datastore.getExercises()) {
-            String sql = "INSERT INTO "+ TABLES.EXERCISE+" ("+ EXERCISE.ID+", "+EXERCISE.CATEGORY+", "
-                    +EXERCISE.CODE+", "+EXERCISE.DESCRIPTION+", "+EXERCISE.METABOLIC_EQUIVALENT
-                    +") VALUES (?, ?, ?, ?, ?)";
-            try (PreparedStatement statement = connection.prepareStatement(sql)) {
-                statement.setObject(1, exercise.getId(), Types.BINARY);
-                statement.setString(2, exercise.getCategory());
-                statement.setString(3, exercise.getCode());
-                statement.setString(4, exercise.getDescription());
-                statement.setDouble(5, exercise.getMetabolicEquivalent());
-                statement.executeUpdate();
-            }
-        }
-    }
-
-    private void writeGlobalFoods() throws SQLException {
-        for(Food food : datastore.getGlobalFoods()) {
-            writeFood(food, null);
-        }
-    }
-
-    private void writeUsers() throws Exception {
-        for(User user : datastore.getUsers()) {
-            String userSql = "INSERT INTO "+ TABLES.USER +" ("+USER.ID+", "+ USER.GENDER+", "+USER.AGE+", "+USER.HEIGHT_IN_INCHES
-                    +", "+USER.ACTIVITY_LEVEL+", "+USER.USERNAME+", "+USER.PASSWORD+", "+USER.FIRST_NAME+", "
-                    +USER.LAST_NAME+", "+USER.IS_ACTIVE+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-            try (PreparedStatement statement = connection.prepareStatement(userSql)) {
-                statement.setObject(1, user.getId(), Types.BINARY);
-                statement.setString(2, user.getGender().toString());
-                statement.setInt(3, user.getAge());
-                statement.setDouble(4, user.getHeightInInches());
-                statement.setDouble(5, user.getActivityLevel().getValue());
-                statement.setString(6, user.getUsername());
-                statement.setString(7, user.getPassword());
-                statement.setString(8, user.getFirstName());
-                statement.setString(9, user.getLastName());
-                statement.setBoolean(10, user.isActive());
-                statement.executeUpdate();
-            }
-
-            for(Weight weight : user.getWeights()) {
-                String sql = "INSERT INTO "+TABLES.WEIGHT+" ("+ WEIGHT.ID+", "+WEIGHT.USER_ID+", "+WEIGHT.DATE+", "
-                        +WEIGHT.POUNDS+") VALUES (?, ?, ?, ?)";
-                try (PreparedStatement statement = connection.prepareStatement(sql)) {
-                    statement.setObject(1, weight.getId(), Types.BINARY);
-                    statement.setObject(2, user.getId(), Types.BINARY);
-                    statement.setDate(3, new java.sql.Date(weight.getDate().getTime()));
-                    statement.setDouble(4, weight.getPounds());
-                    statement.executeUpdate();
-                }
-            }
-
-            for(Food food : user.getFoods()) {
-                writeFood(food, user.getId());
-            }
-
-            for(FoodEaten foodEaten : user.getFoodsEaten()) {
-                String sql = "INSERT INTO "+TABLES.FOOD_EATEN+" ("+FOOD_EATEN.ID+", "+FOOD_EATEN.USER_ID+", "
-                        +FOOD_EATEN.FOOD_ID+", "+FOOD_EATEN.DATE+", "+FOOD_EATEN.SERVING_TYPE+", "
-                        +FOOD_EATEN.SERVING_QTY+") VALUES (?, ?, ?, ?, ? ,?)";
-                try (PreparedStatement statement = connection.prepareStatement(sql)) {
-                    statement.setObject(1, foodEaten.getId(), Types.BINARY);
-                    statement.setObject(2, user.getId(), Types.BINARY);
-                    statement.setObject(3, foodEaten.getFoodId(), Types.BINARY);
-                    statement.setDate(4, new java.sql.Date(foodEaten.getDate().getTime()));
-                    statement.setString(5, foodEaten.getServingType().toString());
-                    statement.setDouble(6, foodEaten.getServingQty());
-                    statement.executeUpdate();
-                }
-            }
-
-            for(ExercisePerformed exercisePerformed : user.getExercisesPerformed()) {
-                String sql = "INSERT INTO "+TABLES.EXERCISE_PERFORMED+" ("+EXERCISE_PERFORMED.ID+", "
-                        +EXERCISE_PERFORMED.USER_ID+", "+EXERCISE_PERFORMED.EXERCISE_ID+", "
-                        +EXERCISE_PERFORMED.DATE+", "+EXERCISE_PERFORMED.MINUTES+") VALUES (?, ?, ?, ?, ?)";
-                try (PreparedStatement statement = connection.prepareStatement(sql)) {
-                    statement.setObject(1, exercisePerformed.getId(), Types.BINARY);
-                    statement.setObject(2, user.getId(), Types.BINARY);
-                    statement.setObject(3, exercisePerformed.getExerciseId(), Types.BINARY);
-                    statement.setDate(4, new java.sql.Date(exercisePerformed.getDate().getTime()));
-                    statement.setInt(5, exercisePerformed.getMinutes());
-                    statement.executeUpdate();
-                }
-            }
-        }
-    }
-
-    private void writeFood(Food food, UUID ownerId) throws SQLException {
-        String sql = "INSERT INTO "+TABLES.FOOD+" ("+FOOD.ID+", "+FOOD.NAME+", "+FOOD.DEFAULT_SERVING_TYPE+", "
-                +FOOD.SERVING_TYPE_QTY+", "+FOOD.CALORIES+", "+FOOD.FAT+", "+FOOD.SATURATED_FAT+", "
-                +FOOD.CARBS+", "+FOOD.FIBER+", "+FOOD.SUGAR+", "+FOOD.PROTEIN+", "+FOOD.SODIUM;
-        sql += (ownerId != null)
-                ? ", "+FOOD.USER_ID+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-                : ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try(PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setObject(1, food.getId(), Types.BINARY);
-            statement.setString(2, food.getName());
-            statement.setString(3, food.getDefaultServingType().toString());
-            statement.setFloat(4, food.getServingTypeQty().floatValue());
-            statement.setInt(5, food.getCalories());
-            statement.setFloat(6, food.getFat().floatValue());
-            statement.setFloat(7, food.getSaturatedFat().floatValue());
-            statement.setFloat(8, food.getCarbs().floatValue());
-            statement.setFloat(9, food.getFiber().floatValue());
-            statement.setFloat(10, food.getSugar().floatValue());
-            statement.setFloat(11, food.getProtein().floatValue());
-            statement.setFloat(12, food.getSodium().floatValue());
-            if(ownerId != null) {
-                statement.setObject(13, ownerId, Types.BINARY);
-            }
-            statement.executeUpdate();
         }
     }
 

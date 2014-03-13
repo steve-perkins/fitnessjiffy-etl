@@ -6,13 +6,10 @@ import net.steveperkins.fitnessjiffy.etl.writer.H2Writer;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
-public class MigrationTests {
-
-    private final String CURRENT_WORKING_DIRECTORY = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
+public class MigrationTests extends AbstractTests {
 
     @Before
     public void before() throws Exception {
@@ -21,16 +18,6 @@ public class MigrationTests {
         cleanFileInWorkingDirectory("sqlite-temp.h2.db");
         cleanFileInWorkingDirectory("h2-temp.h2.db");
         cleanFileInWorkingDirectory("output.json");
-    }
-
-    private void cleanFileInWorkingDirectory(String name) throws Exception {
-        File theFile = new File(CURRENT_WORKING_DIRECTORY + name);
-        if(theFile.exists()) {
-            if(!theFile.delete()) {
-                throw new Exception("There is an existing file " + theFile.getCanonicalPath()
-                        + " which can't be deleted for some reason.  Please delete this file manually.");
-            }
-        }
     }
 
     @Test

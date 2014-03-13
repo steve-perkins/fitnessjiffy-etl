@@ -12,11 +12,7 @@ import java.sql.DriverManager;
 
 import static junit.framework.TestCase.assertEquals;
 
-public class H2Tests {
-
-    private static final int EXPECTED_JSON_STRING_LENGTH = 3452626;
-    private static final int EXPECTED_JSON_FILE_LENGTH = 3452773;
-    private final String CURRENT_WORKING_DIRECTORY = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
+public class H2Tests extends AbstractTests {
 
     @Before
     public void before() throws Exception {
@@ -24,16 +20,6 @@ public class H2Tests {
         cleanFileInWorkingDirectory("sqlite-temp.h2.db");
         cleanFileInWorkingDirectory("h2-temp.h2.db");
         cleanFileInWorkingDirectory("output.json");
-    }
-
-    private void cleanFileInWorkingDirectory(String name) throws Exception {
-        File theFile = new File(CURRENT_WORKING_DIRECTORY + name);
-        if(theFile.exists()) {
-            if(!theFile.delete()) {
-                throw new Exception("There is an existing file " + theFile.getCanonicalPath()
-                        + " which can't be deleted for some reason.  Please delete this file manually.");
-            }
-        }
     }
 
     @Test

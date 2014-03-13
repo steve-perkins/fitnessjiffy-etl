@@ -45,17 +45,7 @@ public class LegacySQLiteWriter extends JDBCWriter {
     }
 
     @Override
-    public void write() throws Exception {
-        if(connection.isClosed()) throw new IllegalStateException();
-        connection.setAutoCommit(false);
-        writeSchema();
-        writeExercises();
-        writeGlobalFoods();
-        writeUsers();
-        connection.commit();
-    }
-
-    private void writeSchema() throws SQLException {
+    protected void writeSchema() throws SQLException {
         String ddl = "CREATE TABLE IF NOT EXISTS [EXERCISES] (\n" +
                 "  [ID] INTEGER PRIMARY KEY, \n" +
                 "  [NAME] [VARCHAR(50)] NOT NULL UNIQUE, \n" +
@@ -133,7 +123,8 @@ public class LegacySQLiteWriter extends JDBCWriter {
         }
     }
 
-    private void writeExercises() throws SQLException {
+    @Override
+    protected void writeExercises() throws SQLException {
         List<String> descriptionsWritten = new ArrayList<>();
 
         for(Exercise exercise : datastore.getExercises()) {
@@ -157,13 +148,8 @@ public class LegacySQLiteWriter extends JDBCWriter {
         }
     }
 
-    private void writeGlobalFoods() throws SQLException {
-        for(Food food : datastore.getGlobalFoods()) {
-            writeFood(food, null);
-        }
-    }
-
-    private void writeUsers() throws Exception {
+    @Override
+    protected void writeUsers() throws Exception {
         for(User user : datastore.getUsers()) {
             int userId = getNextAvailableId(userIds.values());
             userIds.put(user.getId(), userId);
@@ -254,7 +240,8 @@ public class LegacySQLiteWriter extends JDBCWriter {
         }
     }
 
-    private void writeFood(Food food, UUID ownerId) throws SQLException {
+    @Override
+    protected void writeFood(Food food, UUID ownerId) throws SQLException {
         int foodId = getNextAvailableId(foodIds.values());
         foodIds.put(food.getId(), foodId);
 

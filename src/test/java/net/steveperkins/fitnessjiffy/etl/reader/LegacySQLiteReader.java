@@ -127,7 +127,8 @@ public class LegacySQLiteReader extends JDBCReader {
         return datastore;
     }
 
-    private User readUser(ResultSet rs, Connection connection) throws Exception {
+    @Override
+    protected User readUser(ResultSet rs, Connection connection) throws Exception {
         int id = rs.getInt(USER.ID);
         if (id == 0 || rs.wasNull()) throw new Exception("Malformed user, no ID");
         UUID uuid = UUID.randomUUID();
