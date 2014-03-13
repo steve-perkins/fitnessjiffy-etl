@@ -7,7 +7,7 @@ import java.sql.Connection;
 public abstract class JDBCReader {
 
     public interface TABLES {
-        public static String USER = "USER";
+        public static String USER = "FITNESSJIFFY_USER";
         public static String WEIGHT = "WEIGHT";
         public static String FOOD = "FOOD";
         public static String FOOD_EATEN = "FOOD_EATEN";
