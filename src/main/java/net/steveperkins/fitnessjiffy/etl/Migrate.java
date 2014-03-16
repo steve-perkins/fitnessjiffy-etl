@@ -15,6 +15,7 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
@@ -42,19 +43,19 @@ public class Migrate {
             String outputUsername   = commandLine.getOptionValue("U") != null ? commandLine.getOptionValue("U").trim().toLowerCase() : "";
             String outputPassword   = commandLine.getOptionValue("P") != null ? commandLine.getOptionValue("P").trim().toLowerCase() : "";
             if(inputType.isEmpty() || outputType.isEmpty() || inputLocation.isEmpty() || inputLocation.isEmpty() || outputLocation.isEmpty()) {
-                System.out.println("\nYou must specify a type and location for the import database and destination database\n");
+                System.out.println("\nYou must specify a type and location for the import database or JSON file, and the destination database or JSON file\n");
                 showHelp(options);
             }
-            if((!inputType.equals("sqlite") && !inputType.equals("h2") && !inputType.equals("postgres"))
-                    || (!outputType.equals("sqlite") && !outputType.equals("h2") && !outputType.equals("postgres"))
+            if((!inputType.equals("json") && !inputType.equals("sqlite") && !inputType.equals("h2") && !inputType.equals("postgres"))
+                    || (!outputType.equals("json") && !outputType.equals("sqlite") && !outputType.equals("h2") && !outputType.equals("postgres"))
                     ) {
-                System.out.println("\nImport and destination database must be of type \"sqlite\", \"h2\", or \"postgres\"\n");
+                System.out.println("\nImport and destination database must be of type \"json\", \"sqlite\", \"h2\", or \"postgres\"\n");
                 showHelp(options);
             }
 
             Datastore datastore = importDatastore(inputType, inputLocation, inputUsername, inputPassword);
             writeDatastore(outputType, outputLocation, outputUsername, outputPassword, datastore);
-            System.out.println("Done!");
+            System.out.println("Migrated \"" + inputType + "\" data at \"" + inputLocation + "\" to \"" + outputType + "\" at \"" + outputLocation + "\"");
         } catch (Exception e) {
             e.printStackTrace();
             showHelp(options);
@@ -63,14 +64,14 @@ public class Migrate {
 
     private static Options createOptions() {
         Options options = new Options();
-        options.addOption("i", "input-type", true, "import type [sqlite, h2, postgres]");
-        options.addOption("l", "input-location", true, "location of import database... filesystem path for SQLite or H2, \"host[:port]/database_name\" for PostgreSQL");
-        options.addOption("u", "input-username", true, "import username");
-        options.addOption("p", "input-password", true, "import password");
-        options.addOption("O", "output-type", true, "destination type [sqlite, h2, postgres]");
-        options.addOption("L", "output-location", true, "location of destination database... filesystem path for SQLite or H2, \"host[:port]/database_name\" for PostgreSQL");
-        options.addOption("U", "output-username", true, "destination username");
-        options.addOption("P", "output-password", true, "destination password");
+        options.addOption("i", "input-type", true, "import type [json, sqlite, h2, postgres]");
+        options.addOption("l", "input-location", true, "location of JSON backup file, or import database... filesystem path for SQLite or H2, \"host[:port]/database_name\" for PostgreSQL");
+        options.addOption("u", "input-username", true, "import username (if applicable)");
+        options.addOption("p", "input-password", true, "import password (if applicable)");
+        options.addOption("O", "output-type", true, "destination type [json, sqlite, h2, postgres]");
+        options.addOption("L", "output-location", true, "location of JSON backup file, or destination database... filesystem path for SQLite or H2, \"host[:port]/database_name\" for PostgreSQL");
+        options.addOption("U", "output-username", true, "destination username (if applicable)");
+        options.addOption("P", "output-password", true, "destination password (if applicable)");
         options.addOption("h", "help", false, "Help");
         return options;
     }
@@ -83,25 +84,27 @@ public class Migrate {
 
     private static Datastore importDatastore(String type, String location, String username, String password) {
         try {
-            JDBCReader reader = null;
             switch(type) {
+                case "json" :
+                    File jsonFile = new File(location);
+                    return Datastore.fromJSONFile(jsonFile);
                 case "sqlite" :
                     Connection connection = DriverManager.getConnection("jdbc:sqlite:" + location);
-                    reader = new LegacySQLiteReader(connection);
-                    break;
+                    JDBCReader reader = new LegacySQLiteReader(connection);
+                    return reader.read();
                 case "h2" :
                     connection = DriverManager.getConnection("jdbc:h2:" + location);
                     reader = new H2Reader(connection);
-                    break;
+                    return reader.read();
                 case "postgres" :
                     connection = DriverManager.getConnection("jdbc:postgresql://" + location, username, password);
                     reader = new PostgresReader(connection);
-                    break;
+                    return reader.read();
                 default : break;
             }
-            return reader.read();
+            return null;
         } catch (Exception e) {
-            System.out.println("Cannot to load from import database: [" + location + "]");
+            System.out.println("Cannot to load from import: [" + location + "]");
             e.printStackTrace();
             return null;
         }
@@ -109,25 +112,30 @@ public class Migrate {
 
     private static void writeDatastore(String type, String location, String username, String password, Datastore datastore) {
         try {
-            JDBCWriter writer = null;
             switch(type) {
+                case "json" :
+                    File jsonFile = new File(location);
+                    datastore.toJSONFile(jsonFile);
+                    break;
                 case "sqlite" :
                     Connection connection = DriverManager.getConnection("jdbc:sqlite:" + location);
-                    writer = new LegacySQLiteWriter(connection, datastore);
+                    JDBCWriter writer = new LegacySQLiteWriter(connection, datastore);
+                    writer.write();
                     break;
                 case "h2" :
                     connection = DriverManager.getConnection("jdbc:h2:" + location);
                     writer = new H2Writer(connection, datastore);
+                    writer.write();
                     break;
                 case "postgres" :
                     connection = DriverManager.getConnection("jdbc:postgresql://" + location, username, password);
                     writer = new PostgresWriter(connection, datastore);
+                    writer.write();
                     break;
                 default :  break;
             }
-            writer.write();
         } catch (Exception e) {
-            System.out.println("Cannot to write to destination database: [" + location + "]");
+            System.out.println("Cannot to write to destination: [" + location + "]");
             e.printStackTrace();
         }
     }
