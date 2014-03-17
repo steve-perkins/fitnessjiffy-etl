@@ -10,7 +10,6 @@ import org.junit.Test;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
-import java.util.Date;
 
 import static junit.framework.TestCase.assertEquals;
 
@@ -34,7 +33,7 @@ public class PostgresTests extends AbstractTests {
         readConnection.close();
 
         // Create a temporary new PostgreSQL database
-        String tempDbName = "fitnessjiffy_" + new Date().getTime();
+        String tempDbName = "fitnessjiffy_" + new java.util.Date().getTime();
         Connection templateConnection = DriverManager.getConnection(JDBC_BASE_URL + "template1", JDBC_USERNAME, JDBC_PASSWORD);
         Statement templateStatement = templateConnection.createStatement();
         templateStatement.execute("CREATE DATABASE " + tempDbName + " WITH ENCODING = 'UTF8'");

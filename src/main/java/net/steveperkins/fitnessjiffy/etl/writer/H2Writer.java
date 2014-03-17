@@ -34,7 +34,7 @@ public class H2Writer extends JDBCWriter {
                 "\n" +
                 "CREATE CACHED TABLE PUBLIC.EXERCISE_PERFORMED(\n" +
                 "    ID BINARY(16) NOT NULL,\n" +
-                "    DATE TIMESTAMP NOT NULL,\n" +
+                "    DATE DATE NOT NULL,\n" +
                 "    MINUTES INTEGER NOT NULL,\n" +
                 "    EXERCISE_ID BINARY NOT NULL,\n" +
                 "    USER_ID BINARY(16) NOT NULL\n" +
@@ -60,7 +60,7 @@ public class H2Writer extends JDBCWriter {
                 "\n" +
                 "CREATE CACHED TABLE PUBLIC.FOOD_EATEN(\n" +
                 "    ID BINARY(16) NOT NULL,\n" +
-                "    DATE TIMESTAMP NOT NULL,\n" +
+                "    DATE DATE NOT NULL,\n" +
                 "    SERVING_QTY DOUBLE NOT NULL,\n" +
                 "    SERVING_TYPE VARCHAR(10) NOT NULL,\n" +
                 "    FOOD_ID BINARY(16) NOT NULL,\n" +
@@ -84,7 +84,7 @@ public class H2Writer extends JDBCWriter {
                 "\n" +
                 "CREATE CACHED TABLE PUBLIC.WEIGHT(\n" +
                 "    ID BINARY(16) NOT NULL,\n" +
-                "    DATE TIMESTAMP NOT NULL,\n" +
+                "    DATE DATE NOT NULL,\n" +
                 "    POUNDS DOUBLE NOT NULL,\n" +
                 "    USER_ID BINARY(16) NOT NULL\n" +
                 ");\n" +

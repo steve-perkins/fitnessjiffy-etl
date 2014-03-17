@@ -1,6 +1,6 @@
 package net.steveperkins.fitnessjiffy.etl.model;
 
-import java.util.Date;
+import java.sql.Date;
 import java.util.UUID;
 
 public class Weight {

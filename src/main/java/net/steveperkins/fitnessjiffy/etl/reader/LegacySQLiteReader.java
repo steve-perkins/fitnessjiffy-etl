@@ -12,6 +12,7 @@ import net.steveperkins.fitnessjiffy.etl.model.Weight;
 
 import java.io.InputStream;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.text.DateFormat;
@@ -240,7 +241,7 @@ public class LegacySQLiteReader extends JDBCReader {
 
         return new Weight(
                 uuid,
-                dateFormatter.parse(date),
+                new Date(dateFormatter.parse(date).getTime()),
                 pounds
         );
     }
@@ -342,7 +343,7 @@ public class LegacySQLiteReader extends JDBCReader {
         return new FoodEaten(
                 uuid,
                 foodIds.get(foodId),
-                dateFormatter.parse(date),
+                new Date(dateFormatter.parse(date).getTime()),
                 servingType,
                 servingQty
         );
@@ -373,7 +374,7 @@ public class LegacySQLiteReader extends JDBCReader {
         return new ExercisePerformed(
                 uuid,
                 exerciseId,
-                dateFormatter.parse(date),
+                new Date(dateFormatter.parse(date).getTime()),
                 minutes
         );
     }

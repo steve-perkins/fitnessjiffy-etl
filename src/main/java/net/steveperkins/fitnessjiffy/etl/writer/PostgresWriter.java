@@ -11,6 +11,7 @@ import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader;
 
 import java.nio.ByteBuffer;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -46,7 +47,7 @@ public class PostgresWriter extends JDBCWriter {
                 "-- ALTER TABLE public.exercise OWNER TO postgres;\n" +
                 "CREATE TABLE IF NOT EXISTS exercise_performed (\n" +
                 "    id bytea NOT NULL,\n" +
-                "    date timestamp without time zone NOT NULL,\n" +
+                "    date date NOT NULL,\n" +
                 "    minutes integer NOT NULL,\n" +
                 "    exercise_id bytea NOT NULL,\n" +
                 "    user_id bytea NOT NULL\n" +
@@ -83,7 +84,7 @@ public class PostgresWriter extends JDBCWriter {
                 "-- ALTER TABLE public.food OWNER TO postgres;\n" +
                 "CREATE TABLE IF NOT EXISTS food_eaten (\n" +
                 "    id bytea NOT NULL,\n" +
-                "    date timestamp without time zone NOT NULL,\n" +
+                "    date date NOT NULL,\n" +
                 "    serving_qty double precision NOT NULL,\n" +
                 "    serving_type character varying(10) NOT NULL,\n" +
                 "    food_id bytea NOT NULL,\n" +
@@ -92,7 +93,7 @@ public class PostgresWriter extends JDBCWriter {
                 "-- ALTER TABLE public.food_eaten OWNER TO postgres;\n" +
                 "CREATE TABLE IF NOT EXISTS weight (\n" +
                 "    id bytea NOT NULL,\n" +
-                "    date timestamp without time zone NOT NULL,\n" +
+                "    date date NOT NULL,\n" +
                 "    pounds double precision NOT NULL,\n" +
                 "    user_id bytea NOT NULL\n" +
                 ");\n" +
@@ -204,7 +205,7 @@ public class PostgresWriter extends JDBCWriter {
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
                     statement.setBytes(1, uuidToBytes(weight.getId()));
                     statement.setBytes(2, uuidToBytes(user.getId()));
-                    statement.setDate(3, new java.sql.Date(weight.getDate().getTime()));
+                    statement.setDate(3, new Date(weight.getDate().getTime()));
                     statement.setDouble(4, weight.getPounds());
                     statement.executeUpdate();
                 }
@@ -222,7 +223,7 @@ public class PostgresWriter extends JDBCWriter {
                     statement.setBytes(1, uuidToBytes(foodEaten.getId()));
                     statement.setBytes(2, uuidToBytes(user.getId()));
                     statement.setBytes(3, uuidToBytes(foodEaten.getFoodId()));
-                    statement.setDate(4, new java.sql.Date(foodEaten.getDate().getTime()));
+                    statement.setDate(4, new Date(foodEaten.getDate().getTime()));
                     statement.setString(5, foodEaten.getServingType().toString());
                     statement.setDouble(6, foodEaten.getServingQty());
                     statement.executeUpdate();
@@ -237,7 +238,7 @@ public class PostgresWriter extends JDBCWriter {
                     statement.setBytes(1, uuidToBytes(exercisePerformed.getId()));
                     statement.setBytes(2, uuidToBytes(user.getId()));
                     statement.setBytes(3, uuidToBytes(exercisePerformed.getExerciseId()));
-                    statement.setDate(4, new java.sql.Date(exercisePerformed.getDate().getTime()));
+                    statement.setDate(4, new Date(exercisePerformed.getDate().getTime()));
                     statement.setInt(5, exercisePerformed.getMinutes());
                     statement.executeUpdate();
                 }
