@@ -1,5 +1,7 @@
 package net.steveperkins.fitnessjiffy.etl.model;
 
+import java.sql.Date;
+import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -62,33 +64,52 @@ public class User {
 
     private UUID id;
     private Gender gender;
-    private int age;
+    private Date birthdate;
     private double heightInInches;
     private ActivityLevel activityLevel;
-    private String username;
-    private String password;
+    private String email;
+    private byte[] passwordHash;
+    private byte[] passwordSalt;
     private String firstName;
     private String lastName;
-    private boolean isActive;
+    private Timestamp createdTime;
+    private Timestamp lastUpdatedTime;
 
     private Set<Weight> weights = new HashSet<>();
     private Set<Food> foods = new HashSet<>();
     private Set<FoodEaten> foodsEaten = new HashSet<>();
     private Set<ExercisePerformed> exercisesPerformed = new HashSet<>();
 
-    public User(UUID id, Gender gender, int age, double heightInInches, ActivityLevel activityLevel, String username,
-                String password, String firstName, String lastName, boolean isActive, Set<Weight> weights,
-                Set<Food> foods, Set<FoodEaten> foodsEaten, Set<ExercisePerformed> exercisesPerformed) {
+    public User(
+            UUID id,
+            Gender gender,
+            Date birthdate,
+            double heightInInches,
+            ActivityLevel activityLevel,
+            String email,
+            byte[] passwordHash,
+            byte[] passwordSalt,
+            String firstName,
+            String lastName,
+            Timestamp createdTime,
+            Timestamp lastUpdatedTime,
+            Set<Weight> weights,
+            Set<Food> foods,
+            Set<FoodEaten> foodsEaten,
+            Set<ExercisePerformed> exercisesPerformed
+    ) {
         this.id = id;
         this.gender = gender;
-        this.age = age;
+        this.birthdate = birthdate;
         this.heightInInches = heightInInches;
         this.activityLevel = activityLevel;
-        this.username = username;
-        this.password = password;
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.passwordSalt = passwordSalt;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.isActive = isActive;
+        this.createdTime = createdTime;
+        this.lastUpdatedTime = lastUpdatedTime;
         this.weights = weights;
         this.foods = foods;
         this.foodsEaten = foodsEaten;
@@ -114,12 +135,12 @@ public class User {
         this.gender = gender;
     }
 
-    public int getAge() {
-        return age;
+    public Date getBirthdate() {
+        return birthdate;
     }
 
-    public void setAge(int age) {
-        this.age = age;
+    public void setBirthdate(Date birthdate) {
+        this.birthdate = birthdate;
     }
 
     public double getHeightInInches() {
@@ -138,20 +159,28 @@ public class User {
         this.activityLevel = activityLevel;
     }
 
-    public String getUsername() {
-        return username;
+    public String getEmail() {
+        return email;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
-    public String getPassword() {
-        return password;
+    public byte[] getPasswordHash() {
+        return passwordHash;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setPasswordHash(byte[] passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
+    public byte[] getPasswordSalt() {
+        return passwordSalt;
+    }
+
+    public void setPasswordSalt(byte[] passwordSalt) {
+        this.passwordSalt = passwordSalt;
     }
 
     public String getFirstName() {
@@ -170,12 +199,20 @@ public class User {
         this.lastName = lastName;
     }
 
-    public boolean isActive() {
-        return isActive;
+    public Timestamp getCreatedTime() {
+        return createdTime;
     }
 
-    public void setActive(boolean active) {
-        isActive = active;
+    public void setCreatedTime(Timestamp createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public Timestamp getLastUpdatedTime() {
+        return lastUpdatedTime;
+    }
+
+    public void setLastUpdatedTime(Timestamp lastUpdatedTime) {
+        this.lastUpdatedTime = lastUpdatedTime;
     }
 
     public Set<Weight> getWeights() {

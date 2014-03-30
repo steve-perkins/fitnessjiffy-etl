@@ -1,5 +1,6 @@
 package net.steveperkins.fitnessjiffy.etl.model;
 
+import java.sql.Timestamp;
 import java.util.UUID;
 
 public class Food {
@@ -43,10 +44,25 @@ public class Food {
     private Double sugar;
     private Double protein;
     private Double sodium;
+    private Timestamp createdTime;
+    private Timestamp lastUpdatedTime;
 
-    public Food(UUID id, String name, ServingType defaultServingType, Double servingTypeQty,
-                Integer calories, Double fat, Double saturatedFat, Double carbs,
-                Double fiber, Double sugar, Double protein, Double sodium) {
+    public Food(
+            UUID id,
+            String name,
+            ServingType defaultServingType,
+            Double servingTypeQty,
+            Integer calories,
+            Double fat,
+            Double saturatedFat,
+            Double carbs,
+            Double fiber,
+            Double sugar,
+            Double protein,
+            Double sodium,
+            Timestamp createdTime,
+            Timestamp lastUpdatedTime
+    ) {
         this.id = id;
         this.name = name;
         this.defaultServingType = defaultServingType;
@@ -59,6 +75,8 @@ public class Food {
         this.sugar = sugar;
         this.protein = protein;
         this.sodium = sodium;
+        this.createdTime = createdTime;
+        this.lastUpdatedTime = lastUpdatedTime;
     }
 
     public Food() {
@@ -158,6 +176,22 @@ public class Food {
 
     public void setSodium(Double sodium) {
         this.sodium = sodium;
+    }
+
+    public Timestamp getCreatedTime() {
+        return createdTime;
+    }
+
+    public void setCreatedTime(Timestamp createdTime) {
+        this.createdTime = createdTime;
+    }
+
+    public Timestamp getLastUpdatedTime() {
+        return lastUpdatedTime;
+    }
+
+    public void setLastUpdatedTime(Timestamp lastUpdatedTime) {
+        this.lastUpdatedTime = lastUpdatedTime;
     }
 
 }

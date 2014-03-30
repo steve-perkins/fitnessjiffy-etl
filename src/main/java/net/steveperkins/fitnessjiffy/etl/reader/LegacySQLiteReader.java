@@ -11,17 +11,14 @@ import net.steveperkins.fitnessjiffy.etl.model.User;
 import net.steveperkins.fitnessjiffy.etl.model.Weight;
 
 import java.io.InputStream;
-import java.sql.Connection;
+import java.nio.ByteBuffer;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.sql.*;
 import java.sql.Date;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class LegacySQLiteReader extends JDBCReader {
 
@@ -33,6 +30,15 @@ public class LegacySQLiteReader extends JDBCReader {
         public static final String EXERCISE_PERFORMED = "EXERCISES_PERFORMED";
     }
     public interface USER extends JDBCReader.USER {
+        public static final String BIRTHDATE = null;
+        public static final String EMAIL = null;
+        public static final String PASSWORD_HASH = null;
+        public static final String PASSWORD_SALT = null;
+        public static final String CREATED_TIME = null;
+        public static final String LAST_UPDATED_TIME = null;
+        public static final String AGE = "AGE";
+        public static final String USERNAME = "USERNAME";
+        public static final String PASSWORD = "PASSWORD";
         public static final String IS_ACTIVE = "ACTIVE";
     }
     public interface WEIGHT {
@@ -43,6 +49,8 @@ public class LegacySQLiteReader extends JDBCReader {
     }
     public interface FOOD extends JDBCReader.FOOD {
         public static final String USER_ID = "USER_ID";
+        public static final String CREATED_TIME = null;
+        public static final String LAST_UPDATED_TIME = null;
     }
     public interface FOOD_EATEN extends JDBCReader.FOOD_EATEN {
     }
@@ -139,6 +147,11 @@ public class LegacySQLiteReader extends JDBCReader {
 
         int age = rs.getInt(USER.AGE);
         if (age == 0 || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no age");
+        Calendar currentDateMinusAge = new GregorianCalendar();
+        currentDateMinusAge.set(Calendar.MONTH, Calendar.JANUARY);
+        currentDateMinusAge.set(Calendar.DAY_OF_MONTH, 1);
+        currentDateMinusAge.add(Calendar.YEAR, (age * -1));
+        Date birthdate = new Date(currentDateMinusAge.getTimeInMillis());
 
         double heightInInches = rs.getDouble(USER.HEIGHT_IN_INCHES);
         if (heightInInches == 0 || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no height");
@@ -151,6 +164,17 @@ public class LegacySQLiteReader extends JDBCReader {
 
         String password = rs.getString(USER.PASSWORD);
         if (password == null || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no password");
+
+        // Generate a random salt, and hash the password 1,000 times (https://www.owasp.org/index.php/Hashing_Java)
+        byte[] passwordSalt = ByteBuffer.allocate(16).putLong(Math.abs(new SecureRandom().nextLong())).array();
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        digest.reset();
+        digest.update(passwordSalt);
+        byte[] passwordHash = digest.digest(password.getBytes());
+        for (int i = 0; i < 1000; i++) {
+            digest.reset();
+            passwordHash = digest.digest(passwordHash);
+        }
 
         String firstName = rs.getString(USER.FIRST_NAME);
         if (firstName == null || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no first name");
@@ -210,17 +234,40 @@ public class LegacySQLiteReader extends JDBCReader {
             }
         }
 
+        // Earliest activity (i.e. for created_date and last_updated_date)
+        Timestamp earliestActivity = null;
+        try ( PreparedStatement statement = connection.prepareStatement(
+                "SELECT MIN(DATE) FROM ("
+                        + "SELECT MIN("+WEIGHT.DATE+") AS DATE FROM "+TABLES.WEIGHT+" WHERE "+WEIGHT.USER_ID+" = ?"
+                        + " UNION SELECT MIN("+FOOD_EATEN.DATE+") AS DATE FROM "+TABLES.FOOD_EATEN+" WHERE "+FOOD_EATEN.USER_ID+" = ?"
+                        + " UNION SELECT MIN("+EXERCISE_PERFORMED.DATE+") AS DATE FROM "+TABLES.EXERCISE_PERFORMED+" WHERE "+EXERCISE_PERFORMED.USER_ID+" = ?"
+                        + ")"
+        ) ) {
+            statement.setInt(1, id);
+            statement.setInt(2, id);
+            statement.setInt(3, id);
+            try ( ResultSet earliestActivityResultSet = statement.executeQuery() ) {
+                if(earliestActivityResultSet.next()) {
+                    String earliestDateString = earliestActivityResultSet.getString(1);
+                    long earliestDate = dateFormatter.parse(earliestDateString).getTime();
+                    earliestActivity = new Timestamp(earliestDate);
+                }
+            }
+        }
+
         return new User(
                 uuid,
                 gender,
-                age,
+                birthdate,
                 heightInInches,
                 activityLevel,
-                username,
-                password,
+                username, // email
+                passwordHash,
+                passwordSalt,
                 firstName,
                 lastName,
-                isActive.trim().equalsIgnoreCase("Y"),
+                earliestActivity,
+                earliestActivity,
                 weights,
                 foods,
                 foodsEaten,
@@ -306,6 +353,25 @@ public class LegacySQLiteReader extends JDBCReader {
             throw new Exception("Malformed food with ID: " + id + ", null sodium");
         }
 
+        Timestamp earliestActivity = null;
+        try ( PreparedStatement statement = connection.prepareStatement(
+                "SELECT MIN("+FOOD_EATEN.DATE+") AS DATE FROM "+TABLES.FOOD_EATEN+" WHERE "+FOOD_EATEN.FOOD_ID+" = ?"
+        ) ) {
+            statement.setInt(1, id);
+            try ( ResultSet earliestActivityResultSet = statement.executeQuery() ) {
+                if(earliestActivityResultSet.next()) {
+                    try {
+                        long earliestDate = dateFormatter.parse(earliestActivityResultSet.getString(1)).getTime();
+                        earliestActivity = new Timestamp(earliestDate);
+                    } catch (Exception e) {
+                        earliestActivity = new Timestamp(new java.util.Date().getTime());
+                    }
+                } else {
+                    earliestActivity = new Timestamp(new java.util.Date().getTime());
+                }
+            }
+        }
+
         return new Food(
                 uuid,
                 name,
@@ -318,7 +384,9 @@ public class LegacySQLiteReader extends JDBCReader {
                 fiber,
                 sugar,
                 protein,
-                sodium
+                sodium,
+                earliestActivity,
+                earliestActivity
         );
     }
 

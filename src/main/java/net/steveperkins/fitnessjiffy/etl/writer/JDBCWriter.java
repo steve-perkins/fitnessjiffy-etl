@@ -65,20 +65,22 @@ public abstract class JDBCWriter {
 
     protected void writeUsers() throws Exception {
         for(User user : datastore.getUsers()) {
-            String userSql = "INSERT INTO "+ JDBCReader.TABLES.USER +" ("+ JDBCReader.USER.ID+", "+ JDBCReader.USER.GENDER+", "+ JDBCReader.USER.AGE+", "+ JDBCReader.USER.HEIGHT_IN_INCHES
-                    +", "+ JDBCReader.USER.ACTIVITY_LEVEL+", "+ JDBCReader.USER.USERNAME+", "+ JDBCReader.USER.PASSWORD+", "+ JDBCReader.USER.FIRST_NAME+", "
-                    + JDBCReader.USER.LAST_NAME+", "+ JDBCReader.USER.IS_ACTIVE+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String userSql = "INSERT INTO "+ JDBCReader.TABLES.USER +" ("+ JDBCReader.USER.ID+", "+ JDBCReader.USER.GENDER+", "+ JDBCReader.USER.BIRTHDATE+", "+ JDBCReader.USER.HEIGHT_IN_INCHES
+                    +", "+ JDBCReader.USER.ACTIVITY_LEVEL+", "+ JDBCReader.USER.EMAIL+", "+ JDBCReader.USER.PASSWORD_HASH+", "+ JDBCReader.USER.PASSWORD_SALT+", "+ JDBCReader.USER.FIRST_NAME
+                    +", "+ JDBCReader.USER.LAST_NAME+", "+ JDBCReader.USER.CREATED_TIME+", "+ JDBCReader.USER.LAST_UPDATED_TIME+ ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(userSql)) {
                 statement.setObject(1, user.getId(), Types.BINARY);
                 statement.setString(2, user.getGender().toString());
-                statement.setInt(3, user.getAge());
+                statement.setDate(3, user.getBirthdate());
                 statement.setDouble(4, user.getHeightInInches());
                 statement.setDouble(5, user.getActivityLevel().getValue());
-                statement.setString(6, user.getUsername());
-                statement.setString(7, user.getPassword());
-                statement.setString(8, user.getFirstName());
-                statement.setString(9, user.getLastName());
-                statement.setBoolean(10, user.isActive());
+                statement.setString(6, user.getEmail());
+                statement.setBytes(7, user.getPasswordHash());
+                statement.setBytes(8, user.getPasswordSalt());
+                statement.setString(9, user.getFirstName());
+                statement.setString(10, user.getLastName());
+                statement.setTimestamp(11, user.getCreatedTime());
+                statement.setTimestamp(12, user.getLastUpdatedTime());
                 statement.executeUpdate();
             }
 
@@ -132,10 +134,11 @@ public abstract class JDBCWriter {
     protected void writeFood(Food food, UUID ownerId) throws SQLException {
         String sql = "INSERT INTO "+ JDBCReader.TABLES.FOOD+" ("+ JDBCReader.FOOD.ID+", "+ JDBCReader.FOOD.NAME+", "+ JDBCReader.FOOD.DEFAULT_SERVING_TYPE+", "
                 + JDBCReader.FOOD.SERVING_TYPE_QTY+", "+ JDBCReader.FOOD.CALORIES+", "+ JDBCReader.FOOD.FAT+", "+ JDBCReader.FOOD.SATURATED_FAT+", "
-                + JDBCReader.FOOD.CARBS+", "+ JDBCReader.FOOD.FIBER+", "+ JDBCReader.FOOD.SUGAR+", "+ JDBCReader.FOOD.PROTEIN+", "+ JDBCReader.FOOD.SODIUM;
+                + JDBCReader.FOOD.CARBS+", "+ JDBCReader.FOOD.FIBER+", "+ JDBCReader.FOOD.SUGAR+", "+ JDBCReader.FOOD.PROTEIN+", "+ JDBCReader.FOOD.SODIUM+", "
+                + JDBCReader.FOOD.CREATED_TIME+", "+ JDBCReader.FOOD.LAST_UPDATED_TIME;
         sql += (ownerId != null)
-                ? ", "+ JDBCReader.FOOD.USER_ID+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-                : ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                ? ", "+ JDBCReader.FOOD.USER_ID+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                : ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try(PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setObject(1, food.getId(), Types.BINARY);
             statement.setString(2, food.getName());
@@ -149,8 +152,10 @@ public abstract class JDBCWriter {
             statement.setFloat(10, food.getSugar().floatValue());
             statement.setFloat(11, food.getProtein().floatValue());
             statement.setFloat(12, food.getSodium().floatValue());
+            statement.setTimestamp(13, food.getCreatedTime());
+            statement.setTimestamp(14, food.getLastUpdatedTime());
             if(ownerId != null) {
-                statement.setObject(13, ownerId, Types.BINARY);
+                statement.setObject(15, ownerId, Types.BINARY);
             }
             statement.executeUpdate();
         }

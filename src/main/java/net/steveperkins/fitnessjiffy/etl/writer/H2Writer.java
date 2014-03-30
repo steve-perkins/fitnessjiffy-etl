@@ -54,7 +54,9 @@ public class H2Writer extends JDBCWriter {
                 "    SERVING_TYPE_QTY DOUBLE NOT NULL,\n" +
                 "    SODIUM DOUBLE NOT NULL,\n" +
                 "    SUGAR DOUBLE NOT NULL,\n" +
-                "    OWNER_ID BINARY(16)\n" +
+                "    OWNER_ID BINARY(16),\n" +
+                "    CREATED_TIME TIMESTAMP,\n" +
+                "    LAST_UPDATED_TIME TIMESTAMP\n" +
                 ");\n" +
                 "ALTER TABLE PUBLIC.FOOD ADD CONSTRAINT PUBLIC.CONSTRAINT_2 PRIMARY KEY(ID);\n" +
                 "\n" +
@@ -71,14 +73,16 @@ public class H2Writer extends JDBCWriter {
                 "CREATE CACHED TABLE PUBLIC.FITNESSJIFFY_USER(\n" +
                 "    ID BINARY(16) NOT NULL,\n" +
                 "    ACTIVITY_LEVEL VARCHAR(17) NOT NULL,\n" +
-                "    AGE INTEGER NOT NULL,\n" +
+                "    BIRTHDATE DATE NOT NULL,\n" +
                 "    FIRST_NAME VARCHAR(20) NOT NULL,\n" +
                 "    GENDER VARCHAR(6) NOT NULL,\n" +
                 "    HEIGHT_IN_INCHES DOUBLE NOT NULL,\n" +
-                "    IS_ACTIVE BOOLEAN NOT NULL,\n" +
                 "    LAST_NAME VARCHAR(20) NOT NULL,\n" +
-                "    PASSWORD VARCHAR(50) NOT NULL,\n" +
-                "    USERNAME VARCHAR(50) NOT NULL\n" +
+                "    PASSWORD_HASH BINARY(64),\n" +
+                "    PASSWORD_SALT BINARY(64),\n" +
+                "    EMAIL VARCHAR(50) NOT NULL,\n" +
+                "    CREATED_TIME TIMESTAMP,\n" +
+                "    LAST_UPDATED_TIME TIMESTAMP\n" +
                 ");\n" +
                 "ALTER TABLE PUBLIC.FITNESSJIFFY_USER ADD CONSTRAINT PUBLIC.CONSTRAINT_27 PRIMARY KEY(ID);\n" +
                 "\n" +

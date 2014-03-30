@@ -28,14 +28,16 @@ public abstract class JDBCReader {
     public interface USER {
         public static final String ID = "ID";
         public static final String GENDER = "GENDER";
-        public static final String AGE = "AGE";
+        public static final String BIRTHDATE = "BIRTHDATE";
         public static final String HEIGHT_IN_INCHES = "HEIGHT_IN_INCHES";
         public static final String ACTIVITY_LEVEL = "ACTIVITY_LEVEL";
-        public static final String USERNAME = "USERNAME";
-        public static final String PASSWORD = "PASSWORD";
+        public static final String EMAIL = "EMAIL";
+        public static final String PASSWORD_HASH = "PASSWORD_HASH";
+        public static final String PASSWORD_SALT = "PASSWORD_SALT";
         public static final String FIRST_NAME= "FIRST_NAME";
         public static final String LAST_NAME = "LAST_NAME";
-        public static final String IS_ACTIVE = "IS_ACTIVE";
+        public static final String CREATED_TIME = "CREATED_TIME";
+        public static final String LAST_UPDATED_TIME = "LAST_UPDATED_TIME";
     }
     public interface WEIGHT {
         public static final String ID = "ID";
@@ -57,6 +59,8 @@ public abstract class JDBCReader {
         public static final String SUGAR = "SUGAR";
         public static final String PROTEIN = "PROTEIN";
         public static final String SODIUM = "SODIUM";
+        public static final String CREATED_TIME = "CREATED_TIME";
+        public static final String LAST_UPDATED_TIME = "LAST_UPDATED_TIME";
     }
     public interface FOOD_EATEN {
         public static final String ID = "ID";
@@ -125,7 +129,9 @@ public abstract class JDBCReader {
                         rs.getDouble(FOOD.FIBER),
                         rs.getDouble(FOOD.SUGAR),
                         rs.getDouble(FOOD.PROTEIN),
-                        rs.getDouble(FOOD.SODIUM)
+                        rs.getDouble(FOOD.SODIUM),
+                        rs.getTimestamp(FOOD.CREATED_TIME),
+                        rs.getTimestamp(FOOD.LAST_UPDATED_TIME)
                 );
                 datastore.getGlobalFoods().add(food);
             }
@@ -179,7 +185,9 @@ public abstract class JDBCReader {
                             userFoodResultSet.getDouble(FOOD.FIBER),
                             userFoodResultSet.getDouble(FOOD.SUGAR),
                             userFoodResultSet.getDouble(FOOD.PROTEIN),
-                            userFoodResultSet.getDouble(FOOD.SODIUM)
+                            userFoodResultSet.getDouble(FOOD.SODIUM),
+                            userFoodResultSet.getTimestamp(FOOD.CREATED_TIME),
+                            userFoodResultSet.getTimestamp(FOOD.LAST_UPDATED_TIME)
                     );
                     foods.add(food);
                 }
@@ -225,14 +233,16 @@ public abstract class JDBCReader {
         return new User(
                 UUID.nameUUIDFromBytes(userId),
                 User.Gender.fromString(rs.getString(USER.GENDER)),
-                rs.getInt(USER.AGE),
+                rs.getDate(USER.BIRTHDATE),
                 rs.getDouble(USER.HEIGHT_IN_INCHES),
                 User.ActivityLevel.fromValue(rs.getDouble(USER.ACTIVITY_LEVEL)),
-                rs.getString(USER.USERNAME),
-                rs.getString(USER.PASSWORD),
+                rs.getString(USER.EMAIL),
+                rs.getBytes(USER.PASSWORD_HASH),
+                rs.getBytes(USER.PASSWORD_SALT),
                 rs.getString(USER.FIRST_NAME),
                 rs.getString(USER.LAST_NAME),
-                rs.getBoolean(USER.IS_ACTIVE),
+                rs.getTimestamp(USER.CREATED_TIME),
+                rs.getTimestamp(USER.LAST_UPDATED_TIME),
                 weights,
                 foods,
                 foodsEaten,

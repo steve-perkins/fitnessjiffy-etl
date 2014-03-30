@@ -4,8 +4,8 @@ import java.io.File;
 
 public class AbstractTests {
 
-    protected static final int EXPECTED_JSON_STRING_LENGTH = 3452626;
-    protected static final int EXPECTED_JSON_FILE_LENGTH = 3452773;
+    protected static final int EXPECTED_JSON_STRING_LENGTH = 3477875;
+    protected static final int EXPECTED_JSON_FILE_LENGTH = 3478022;
     protected final String CURRENT_WORKING_DIRECTORY = this.getClass().getProtectionDomain().getCodeSource().getLocation().getFile();
 
     protected void cleanFileInWorkingDirectory(String name) throws Exception {

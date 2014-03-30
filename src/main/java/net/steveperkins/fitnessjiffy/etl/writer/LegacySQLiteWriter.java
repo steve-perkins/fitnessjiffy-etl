@@ -21,13 +21,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class LegacySQLiteWriter extends JDBCWriter {
 
@@ -154,20 +148,36 @@ public class LegacySQLiteWriter extends JDBCWriter {
             int userId = getNextAvailableId(userIds.values());
             userIds.put(user.getId(), userId);
 
+            Calendar birthDate = new GregorianCalendar();
+            birthDate.setTimeInMillis(user.getBirthdate().getTime());
+            Calendar currentDate = new GregorianCalendar();
+            int age = currentDate.get(Calendar.YEAR) - birthDate.get(Calendar.YEAR);
+
+
             String userSql = "INSERT INTO "+ TABLES.USER+" ("+USER.ID+", "+ USER.GENDER+", "+USER.AGE+", "+USER.HEIGHT_IN_INCHES
                     +", "+USER.ACTIVITY_LEVEL+", "+USER.USERNAME+", "+USER.PASSWORD+", "+USER.FIRST_NAME+", "
                     +USER.LAST_NAME+", "+USER.IS_ACTIVE+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(userSql)) {
                 statement.setInt(1, userId);
                 statement.setString(2, user.getGender().toString());
-                statement.setInt(3, user.getAge());
+                statement.setInt(3, age);
                 statement.setFloat(4, (float) user.getHeightInInches());
                 statement.setFloat(5, (float) user.getActivityLevel().getValue());
-                statement.setString(6, user.getUsername());
-                statement.setString(7, user.getPassword());
+                statement.setString(6, user.getEmail());
+
+                // The old legacy SQLite database was used in versions of the application that lacked true user-level authentication.  The
+                // Perl version had a global username and password configured for basic auth at the Apache level, which the application code
+                // never even knew about.  The Python version relied on the Django admin login system.  In both cases, the application
+                // model was such that if you knew the global admin credentials, then you could do anything with any user.
+                // Never versions of the application, and supporting databases, are built around true user-level authentication.  However,
+                // we can hardcode a password here because there's no need for backporting all of that to the older versions.
+                statement.setString(7, "password");
                 statement.setString(8, user.getFirstName());
                 statement.setString(9, user.getLastName());
-                statement.setString(10, user.isActive() ? "Y" : "N");
+
+                // The concept of an "active" or "inactive" user is dropped (for now) in the newer versions of the application.  It was
+                // never really used in the legacy SQLite versions either, so it can be hardcoded to "yes".
+                statement.setString(10, "Y");
                 statement.executeUpdate();
             }
 

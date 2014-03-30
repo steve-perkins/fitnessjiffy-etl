@@ -56,14 +56,16 @@ public class PostgresWriter extends JDBCWriter {
                 "CREATE TABLE IF NOT EXISTS fitnessjiffy_user (\n" +
                 "    id bytea NOT NULL,\n" +
                 "    activity_level double precision NOT NULL,\n" +
-                "    age integer NOT NULL,\n" +
+                "    birthdate date NOT NULL,\n" +
                 "    first_name character varying(20) NOT NULL,\n" +
                 "    gender character varying(6) NOT NULL,\n" +
                 "    height_in_inches double precision NOT NULL,\n" +
-                "    is_active boolean NOT NULL,\n" +
                 "    last_name character varying(20) NOT NULL,\n" +
-                "    password character varying(50) NOT NULL,\n" +
-                "    username character varying(50) NOT NULL\n" +
+                "    password_hash bytea,\n" +
+                "    password_salt bytea,\n" +
+                "    email character varying(100) NOT NULL,\n" +
+                "    created_time timestamp NOT NULL,\n" +
+                "    last_updated_time timestamp NOT NULL\n" +
                 ");\n" +
                 "-- ALTER TABLE public.fitnessjiffy_user OWNER TO postgres;\n" +
                 "CREATE TABLE IF NOT EXISTS food (\n" +
@@ -79,7 +81,9 @@ public class PostgresWriter extends JDBCWriter {
                 "    serving_type_qty double precision NOT NULL,\n" +
                 "    sodium double precision NOT NULL,\n" +
                 "    sugar double precision NOT NULL,\n" +
-                "    owner_id bytea\n" +
+                "    owner_id bytea,\n" +
+                "    created_time timestamp NOT NULL,\n" +
+                "    last_updated_time timestamp NOT NULL\n" +
                 ");\n" +
                 "-- ALTER TABLE public.food OWNER TO postgres;\n" +
                 "CREATE TABLE IF NOT EXISTS food_eaten (\n" +
@@ -155,10 +159,11 @@ public class PostgresWriter extends JDBCWriter {
     protected void writeFood(Food food, UUID ownerId) throws SQLException {
         String sql = "INSERT INTO "+ JDBCReader.TABLES.FOOD+" ("+ JDBCReader.FOOD.ID+", "+ JDBCReader.FOOD.NAME+", "+ JDBCReader.FOOD.DEFAULT_SERVING_TYPE+", "
                 + JDBCReader.FOOD.SERVING_TYPE_QTY+", "+ JDBCReader.FOOD.CALORIES+", "+ JDBCReader.FOOD.FAT+", "+ JDBCReader.FOOD.SATURATED_FAT+", "
-                + JDBCReader.FOOD.CARBS+", "+ JDBCReader.FOOD.FIBER+", "+ JDBCReader.FOOD.SUGAR+", "+ JDBCReader.FOOD.PROTEIN+", "+ JDBCReader.FOOD.SODIUM;
+                + JDBCReader.FOOD.CARBS+", "+ JDBCReader.FOOD.FIBER+", "+ JDBCReader.FOOD.SUGAR+", "+ JDBCReader.FOOD.PROTEIN+", "+ JDBCReader.FOOD.SODIUM+", "
+                + JDBCReader.FOOD.CREATED_TIME+", "+ JDBCReader.FOOD.LAST_UPDATED_TIME;
         sql += (ownerId != null)
-                ? ", "+ JDBCReader.FOOD.USER_ID+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-                : ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                ? ", "+ JDBCReader.FOOD.USER_ID+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                : ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try(PreparedStatement statement = connection.prepareStatement(sql)) {
             statement.setBytes(1, uuidToBytes(food.getId()));
             statement.setString(2, food.getName());
@@ -172,8 +177,10 @@ public class PostgresWriter extends JDBCWriter {
             statement.setFloat(10, food.getSugar().floatValue());
             statement.setFloat(11, food.getProtein().floatValue());
             statement.setFloat(12, food.getSodium().floatValue());
+            statement.setTimestamp(13, food.getCreatedTime());
+            statement.setTimestamp(14, food.getLastUpdatedTime());
             if(ownerId != null) {
-                statement.setBytes(13, uuidToBytes(ownerId));
+                statement.setBytes(15, uuidToBytes(ownerId));
             }
             statement.executeUpdate();
         }
@@ -182,20 +189,22 @@ public class PostgresWriter extends JDBCWriter {
     @Override
     protected void writeUsers() throws Exception {
         for(User user : datastore.getUsers()) {
-            String userSql = "INSERT INTO "+ JDBCReader.TABLES.USER +" ("+ JDBCReader.USER.ID+", "+ JDBCReader.USER.GENDER+", "+ JDBCReader.USER.AGE+", "+ JDBCReader.USER.HEIGHT_IN_INCHES
-                    +", "+ JDBCReader.USER.ACTIVITY_LEVEL+", "+ JDBCReader.USER.USERNAME+", "+ JDBCReader.USER.PASSWORD+", "+ JDBCReader.USER.FIRST_NAME+", "
-                    + JDBCReader.USER.LAST_NAME+", "+ JDBCReader.USER.IS_ACTIVE+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            String userSql = "INSERT INTO "+ JDBCReader.TABLES.USER +" ("+ JDBCReader.USER.ID+", "+ JDBCReader.USER.GENDER+", "+ JDBCReader.USER.BIRTHDATE+", "+ JDBCReader.USER.HEIGHT_IN_INCHES
+                    +", "+ JDBCReader.USER.ACTIVITY_LEVEL+", "+ JDBCReader.USER.EMAIL+", "+ JDBCReader.USER.PASSWORD_HASH+", "+ JDBCReader.USER.PASSWORD_SALT+", "+ JDBCReader.USER.FIRST_NAME
+                    +", "+ JDBCReader.USER.LAST_NAME+", "+ JDBCReader.USER.CREATED_TIME+", "+ JDBCReader.USER.LAST_UPDATED_TIME+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(userSql)) {
                 statement.setBytes(1, uuidToBytes(user.getId()));
                 statement.setString(2, user.getGender().toString());
-                statement.setInt(3, user.getAge());
+                statement.setDate(3, user.getBirthdate());
                 statement.setDouble(4, user.getHeightInInches());
                 statement.setDouble(5, user.getActivityLevel().getValue());
-                statement.setString(6, user.getUsername());
-                statement.setString(7, user.getPassword());
-                statement.setString(8, user.getFirstName());
-                statement.setString(9, user.getLastName());
-                statement.setBoolean(10, user.isActive());
+                statement.setString(6, user.getEmail());
+                statement.setBytes(7, user.getPasswordHash());
+                statement.setBytes(8, user.getPasswordSalt());
+                statement.setString(9, user.getFirstName());
+                statement.setString(10, user.getLastName());
+                statement.setTimestamp(11, user.getCreatedTime());
+                statement.setTimestamp(12, user.getLastUpdatedTime());
                 statement.executeUpdate();
             }
 
