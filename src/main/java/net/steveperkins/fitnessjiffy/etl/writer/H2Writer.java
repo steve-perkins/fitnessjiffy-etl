@@ -80,7 +80,7 @@ public class H2Writer extends JDBCWriter {
                 "    LAST_NAME VARCHAR(20) NOT NULL,\n" +
                 "    PASSWORD_HASH BINARY(64),\n" +
                 "    PASSWORD_SALT BINARY(64),\n" +
-                "    EMAIL VARCHAR(50) NOT NULL,\n" +
+                "    EMAIL VARCHAR(100) NOT NULL,\n" +
                 "    CREATED_TIME TIMESTAMP,\n" +
                 "    LAST_UPDATED_TIME TIMESTAMP\n" +
                 ");\n" +
