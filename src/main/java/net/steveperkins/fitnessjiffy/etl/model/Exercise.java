@@ -3,6 +3,7 @@ package net.steveperkins.fitnessjiffy.etl.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public class Exercise {
@@ -14,11 +15,13 @@ public class Exercise {
     private String description;
 
     @JsonCreator
-    public Exercise(@JsonProperty("id") UUID id,
-                    @JsonProperty("code") String code,
-                    @JsonProperty("metabolicEquivalent") Double metabolicEquivalent,
-                    @JsonProperty("category") String category,
-                    @JsonProperty("description") String description) {
+    public Exercise(
+            @Nonnull @JsonProperty("id") UUID id,
+            @Nonnull @JsonProperty("code") String code,
+            @Nonnull @JsonProperty("metabolicEquivalent") Double metabolicEquivalent,
+            @Nonnull @JsonProperty("category") String category,
+            @Nonnull @JsonProperty("description") String description
+    ) {
         this.id = id;
         this.code = code;
         this.metabolicEquivalent = metabolicEquivalent;
@@ -29,45 +32,49 @@ public class Exercise {
     public Exercise() {
     }
 
+    @Nonnull
     public UUID getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(@Nonnull UUID id) {
         this.id = id;
     }
 
+    @Nonnull
     public String getCode() {
         return code;
     }
 
-    public void setCode(String code) {
+    public void setCode(@Nonnull String code) {
         this.code = code;
     }
 
+    @Nonnull
     public Double getMetabolicEquivalent() {
         return metabolicEquivalent;
     }
 
-    public void setMetabolicEquivalent(Double metabolicEquivalent) {
+    public void setMetabolicEquivalent(@Nonnull Double metabolicEquivalent) {
         this.metabolicEquivalent = metabolicEquivalent;
     }
 
+    @Nonnull
     public String getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(@Nonnull String category) {
         this.category = category;
     }
 
+    @Nonnull
     public String getDescription() {
-        return (description != null) ? description.trim() : null;
+        return description.trim();
     }
 
-    public void setDescription(String description) {
-        if(description != null) description = description.trim();
-        this.description = description;
+    public void setDescription(@Nonnull String description) {
+        this.description = description.trim();
     }
 
 }

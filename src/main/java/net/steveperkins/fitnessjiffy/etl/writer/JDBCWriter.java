@@ -9,6 +9,8 @@ import net.steveperkins.fitnessjiffy.etl.model.User;
 import net.steveperkins.fitnessjiffy.etl.model.Weight;
 import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -20,7 +22,7 @@ public abstract class JDBCWriter {
     protected Connection connection;
     protected Datastore datastore;
 
-    public JDBCWriter(Connection connection, Datastore datastore) {
+    public JDBCWriter(@Nonnull Connection connection, @Nonnull Datastore datastore) {
         if(connection == null) throw new NullPointerException();
         if(datastore == null) throw new NullPointerException();
         this.connection = connection;
@@ -131,7 +133,7 @@ public abstract class JDBCWriter {
         }
     }
 
-    protected void writeFood(Food food, UUID ownerId) throws SQLException {
+    protected void writeFood(@Nonnull Food food, @Nullable UUID ownerId) throws SQLException {
         String sql = "INSERT INTO "+ JDBCReader.TABLES.FOOD+" ("+ JDBCReader.FOOD.ID+", "+ JDBCReader.FOOD.NAME+", "+ JDBCReader.FOOD.DEFAULT_SERVING_TYPE+", "
                 + JDBCReader.FOOD.SERVING_TYPE_QTY+", "+ JDBCReader.FOOD.CALORIES+", "+ JDBCReader.FOOD.FAT+", "+ JDBCReader.FOOD.SATURATED_FAT+", "
                 + JDBCReader.FOOD.CARBS+", "+ JDBCReader.FOOD.FIBER+", "+ JDBCReader.FOOD.SUGAR+", "+ JDBCReader.FOOD.PROTEIN+", "+ JDBCReader.FOOD.SODIUM+", "

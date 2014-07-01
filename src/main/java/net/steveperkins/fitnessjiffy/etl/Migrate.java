@@ -15,6 +15,8 @@ import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -62,6 +64,7 @@ public class Migrate {
         }
     }
 
+    @Nonnull
     private static Options createOptions() {
         Options options = new Options();
         options.addOption("i", "input-type", true, "import type [json, sqlite, h2, postgres]");
@@ -76,13 +79,19 @@ public class Migrate {
         return options;
     }
 
-    private static void showHelp(Options options) {
+    private static void showHelp(@Nonnull Options options) {
         HelpFormatter helpFormatter = new HelpFormatter();
         helpFormatter.printHelp("help", options);
         System.exit(-1);
     }
 
-    private static Datastore importDatastore(String type, String location, String username, String password) {
+    @Nullable
+    private static Datastore importDatastore(
+            @Nonnull String type,
+            @Nonnull String location,
+            @Nonnull String username,
+            @Nonnull String password
+    ) {
         try {
             switch(type) {
                 case "json" :
@@ -110,7 +119,13 @@ public class Migrate {
         }
     }
 
-    private static void writeDatastore(String type, String location, String username, String password, Datastore datastore) {
+    private static void writeDatastore(
+            @Nonnull String type,
+            @Nonnull String location,
+            @Nonnull String username,
+            @Nonnull String password,
+            @Nonnull Datastore datastore
+    ) {
         try {
             switch(type) {
                 case "json" :

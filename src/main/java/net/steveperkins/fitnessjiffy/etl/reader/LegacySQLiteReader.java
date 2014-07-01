@@ -10,8 +10,10 @@ import net.steveperkins.fitnessjiffy.etl.model.FoodEaten;
 import net.steveperkins.fitnessjiffy.etl.model.User;
 import net.steveperkins.fitnessjiffy.etl.model.Weight;
 
+import javax.annotation.Nonnull;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.sql.*;
@@ -102,21 +104,23 @@ public class LegacySQLiteReader extends JDBCReader {
     }};
     private final DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 
-    public LegacySQLiteReader(Connection connection) {
+    public LegacySQLiteReader(@Nonnull Connection connection) {
         super(connection);
     }
 
     @Override
+    @Nonnull
     public Datastore read() throws Exception {
         if(connection.isClosed()) throw new IllegalStateException();
 
         Datastore datastore = new Datastore();
 
         // Load exercises
-        InputStream exerciseJsonStream = this.getClass().getResourceAsStream(EXERCISES_JSON_PATH);
-        Set<Exercise> exercises = new ObjectMapper().readValue(exerciseJsonStream, new TypeReference<Set<Exercise>>() {});
-        for(Exercise exercise : exercises) exercise.setDescription(exercise.getDescription().trim());
-        datastore.getExercises().addAll(exercises);
+        try( InputStream exerciseJsonStream = this.getClass().getResourceAsStream(EXERCISES_JSON_PATH) ) {
+            Set<Exercise> exercises = new ObjectMapper().readValue(exerciseJsonStream, new TypeReference<Set<Exercise>>() {});
+            for(Exercise exercise : exercises) exercise.setDescription(exercise.getDescription().trim());
+            datastore.getExercises().addAll(exercises);
+        }
 
         // Load global foods
         try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOOD+" WHERE "+FOOD.USER_ID+" IS NULL");
@@ -137,7 +141,8 @@ public class LegacySQLiteReader extends JDBCReader {
     }
 
     @Override
-    protected User readUser(ResultSet rs, Connection connection) throws Exception {
+    @Nonnull
+    protected User readUser(@Nonnull ResultSet rs, @Nonnull Connection connection) throws Exception {
         int id = rs.getInt(USER.ID);
         if (id == 0 || rs.wasNull()) throw new Exception("Malformed user, no ID");
         UUID uuid = UUID.randomUUID();
@@ -166,11 +171,11 @@ public class LegacySQLiteReader extends JDBCReader {
         if (password == null || rs.wasNull()) throw new Exception("Malformed user with ID: " + id + ", no password");
 
         // Generate a random salt, and hash the password 1,000 times (https://www.owasp.org/index.php/Hashing_Java)
-        byte[] passwordSalt = ByteBuffer.allocate(16).putLong(Math.abs(new SecureRandom().nextLong())).array();
+        byte[] passwordSalt = ByteBuffer.allocate(16).putLong(new SecureRandom().nextLong()).array();
         MessageDigest digest = MessageDigest.getInstance("SHA-256");
         digest.reset();
         digest.update(passwordSalt);
-        byte[] passwordHash = digest.digest(password.getBytes());
+        byte[] passwordHash = digest.digest(password.getBytes(Charset.forName("UTF-8")));
         for (int i = 0; i < 1000; i++) {
             digest.reset();
             passwordHash = digest.digest(passwordHash);
@@ -253,6 +258,9 @@ public class LegacySQLiteReader extends JDBCReader {
                     earliestActivity = new Timestamp(earliestDate);
                 }
             }
+            if(earliestActivity == null) {
+                earliestActivity = new Timestamp(new java.util.Date().getTime());
+            }
         }
 
         return new User(
@@ -275,7 +283,8 @@ public class LegacySQLiteReader extends JDBCReader {
         );
     }
 
-    private Weight readWeight(ResultSet rs) throws Exception {
+    @Nonnull
+    private Weight readWeight(@Nonnull ResultSet rs) throws Exception {
         int id = rs.getInt(WEIGHT.ID);
         if (id == 0 || rs.wasNull()) throw new Exception("Malformed weight, no ID");
         UUID uuid = UUID.randomUUID();
@@ -293,7 +302,8 @@ public class LegacySQLiteReader extends JDBCReader {
         );
     }
 
-    private Food readFood(ResultSet rs) throws Exception {
+    @Nonnull
+    private Food readFood(@Nonnull ResultSet rs) throws Exception {
         int id = rs.getInt(FOOD.ID);
         if (id == 0 || rs.wasNull()) throw new Exception("Malformed food, no ID");
         UUID uuid = UUID.randomUUID();
@@ -390,7 +400,8 @@ public class LegacySQLiteReader extends JDBCReader {
         );
     }
 
-    private FoodEaten readFoodEaten(ResultSet rs) throws Exception {
+    @Nonnull
+    private FoodEaten readFoodEaten(@Nonnull ResultSet rs) throws Exception {
         int id = rs.getInt(FOOD_EATEN.ID);
         if (id == 0 || rs.wasNull()) throw new Exception("Malformed food eaten, no ID");
         UUID uuid = UUID.randomUUID();
@@ -417,7 +428,8 @@ public class LegacySQLiteReader extends JDBCReader {
         );
     }
 
-    private ExercisePerformed readExercisePerformed(ResultSet rs) throws Exception {
+    @Nonnull
+    private ExercisePerformed readExercisePerformed(@Nonnull ResultSet rs) throws Exception {
         int id = rs.getInt(EXERCISE_PERFORMED.ID);
         if (id == 0 || rs.wasNull()) throw new Exception("Malformed exercise performed, no ID");
         UUID uuid = UUID.randomUUID();

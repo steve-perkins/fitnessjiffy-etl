@@ -1,5 +1,6 @@
 package net.steveperkins.fitnessjiffy.etl.model;
 
+import javax.annotation.Nonnull;
 import java.sql.Date;
 import java.util.UUID;
 
@@ -10,45 +11,54 @@ public class ExercisePerformed {
     private Date date;
     private Integer minutes;
 
-    public ExercisePerformed(UUID id, UUID exerciseId, Date date, Integer minutes) {
-        this.id = id;
-        this.exerciseId = exerciseId;
-        this.date = date;
+    public ExercisePerformed(
+            @Nonnull UUID id,
+            @Nonnull UUID exerciseId,
+            @Nonnull Date date,
+            @Nonnull Integer minutes
+    ) {
+        this.id = new UUID(id.getMostSignificantBits(), id.getLeastSignificantBits());
+        this.exerciseId = new UUID(exerciseId.getMostSignificantBits(), exerciseId.getLeastSignificantBits());
+        this.date = new Date(date.getTime());
         this.minutes = minutes;
     }
 
     public ExercisePerformed() {
     }
 
+    @Nonnull
     public UUID getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(@Nonnull UUID id) {
         this.id = id;
     }
 
+    @Nonnull
     public UUID getExerciseId() {
         return exerciseId;
     }
 
-    public void setExerciseId(UUID exerciseId) {
-        this.exerciseId = exerciseId;
+    public void setExerciseId(@Nonnull UUID exerciseId) {
+        this.exerciseId = new UUID(exerciseId.getMostSignificantBits(), exerciseId.getLeastSignificantBits());
     }
 
+    @Nonnull
     public Date getDate() {
-        return date;
+        return (Date) date.clone();
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setDate(@Nonnull Date date) {
+        this.date = new Date(date.getTime());
     }
 
+    @Nonnull
     public Integer getMinutes() {
         return minutes;
     }
 
-    public void setMinutes(Integer minutes) {
+    public void setMinutes(@Nonnull Integer minutes) {
         this.minutes = minutes;
     }
 

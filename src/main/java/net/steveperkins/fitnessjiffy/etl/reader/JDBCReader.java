@@ -8,6 +8,7 @@ import net.steveperkins.fitnessjiffy.etl.model.FoodEaten;
 import net.steveperkins.fitnessjiffy.etl.model.User;
 import net.steveperkins.fitnessjiffy.etl.model.Weight;
 
+import javax.annotation.Nonnull;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -89,11 +90,12 @@ public abstract class JDBCReader {
 
     protected Connection connection;
 
-    public JDBCReader(Connection connection) {
+    public JDBCReader(@Nonnull Connection connection) {
         if(connection == null) throw new NullPointerException();
         this.connection = connection;
     }
 
+    @Nonnull
     public Datastore read() throws Exception {
         if(connection.isClosed()) throw new IllegalStateException();
         Datastore datastore = new Datastore();
@@ -148,7 +150,8 @@ public abstract class JDBCReader {
         return datastore;
     }
 
-    protected User readUser(ResultSet rs, Connection connection) throws Exception {
+    @Nonnull
+    protected User readUser(@Nonnull ResultSet rs, @Nonnull Connection connection) throws Exception {
         byte[] userId = rs.getBytes(USER.ID);
 
         // Weights

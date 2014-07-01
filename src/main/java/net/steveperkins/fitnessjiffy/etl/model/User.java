@@ -1,5 +1,7 @@
 package net.steveperkins.fitnessjiffy.etl.model;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.util.HashSet;
@@ -9,8 +11,11 @@ import java.util.UUID;
 public class User {
 
     public enum Gender {
+
         MALE, FEMALE;
-        public static Gender fromString(String s) {
+
+        @Nullable
+        public static Gender fromString(@Nonnull String s) {
             for(Gender gender : Gender.values()) {
                 if(s != null && gender.toString().equalsIgnoreCase(s)) {
                     return gender;
@@ -18,18 +23,25 @@ public class User {
             }
             return null;
         }
+
         @Override
+        @Nonnull
         public String toString() {
             return super.toString();
         }
     }
 
     public enum ActivityLevel {
+
         SEDENTARY(1.25), LIGHTLY_ACTIVE(1.3), MODERATELY_ACTIVE(1.5), VERY_ACTIVE(1.7), EXTREMELY_ACTIVE(2.0);
+
         private double value;
+
         private ActivityLevel(double value) {
             this.value = value;
         }
+
+        @Nullable
         public static ActivityLevel fromValue(double value) {
             for(ActivityLevel activityLevel : ActivityLevel.values()) {
                 if(activityLevel.getValue() == value) {
@@ -38,7 +50,9 @@ public class User {
             }
             return null;
         }
-        public static ActivityLevel fromString(String s) {
+
+        @Nullable
+        public static ActivityLevel fromString(@Nonnull String s) {
             for(ActivityLevel activityLevel : ActivityLevel.values()) {
                 if(activityLevel.toString().equalsIgnoreCase(s)) {
                     return activityLevel;
@@ -46,10 +60,13 @@ public class User {
             }
             return null;
         }
+
         public double getValue() {
             return this.value;
         }
+
         @Override
+        @Nonnull
         public String toString() {
             StringBuilder s = new StringBuilder(super.toString().toLowerCase().replace('_', ' '));
             for(int index = 0; index < s.length(); index++) {
@@ -60,6 +77,7 @@ public class User {
             }
             return s.toString();
         }
+
     }
 
     private UUID id;
@@ -81,35 +99,35 @@ public class User {
     private Set<ExercisePerformed> exercisesPerformed = new HashSet<>();
 
     public User(
-            UUID id,
-            Gender gender,
-            Date birthdate,
+            @Nonnull UUID id,
+            @Nonnull Gender gender,
+            @Nonnull Date birthdate,
             double heightInInches,
-            ActivityLevel activityLevel,
-            String email,
-            byte[] passwordHash,
-            byte[] passwordSalt,
-            String firstName,
-            String lastName,
-            Timestamp createdTime,
-            Timestamp lastUpdatedTime,
-            Set<Weight> weights,
-            Set<Food> foods,
-            Set<FoodEaten> foodsEaten,
-            Set<ExercisePerformed> exercisesPerformed
+            @Nonnull ActivityLevel activityLevel,
+            @Nonnull String email,
+            @Nonnull byte[] passwordHash,
+            @Nonnull byte[] passwordSalt,
+            @Nonnull String firstName,
+            @Nonnull String lastName,
+            @Nonnull Timestamp createdTime,
+            @Nonnull Timestamp lastUpdatedTime,
+            @Nonnull Set<Weight> weights,
+            @Nonnull Set<Food> foods,
+            @Nonnull Set<FoodEaten> foodsEaten,
+            @Nonnull Set<ExercisePerformed> exercisesPerformed
     ) {
         this.id = id;
         this.gender = gender;
-        this.birthdate = birthdate;
+        this.birthdate = (Date) birthdate.clone();
         this.heightInInches = heightInInches;
         this.activityLevel = activityLevel;
         this.email = email;
-        this.passwordHash = passwordHash;
-        this.passwordSalt = passwordSalt;
+        this.passwordHash = passwordHash.clone();
+        this.passwordSalt = passwordSalt.clone();
         this.firstName = firstName;
         this.lastName = lastName;
-        this.createdTime = createdTime;
-        this.lastUpdatedTime = lastUpdatedTime;
+        this.createdTime = (Timestamp) createdTime.clone();
+        this.lastUpdatedTime = (Timestamp) lastUpdatedTime.clone();
         this.weights = weights;
         this.foods = foods;
         this.foodsEaten = foodsEaten;
@@ -119,28 +137,31 @@ public class User {
     public User() {
     }
 
+    @Nonnull
     public UUID getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(@Nonnull UUID id) {
         this.id = id;
     }
 
+    @Nonnull
     public Gender getGender() {
         return gender;
     }
 
-    public void setGender(Gender gender) {
+    public void setGender(@Nonnull Gender gender) {
         this.gender = gender;
     }
 
+    @Nonnull
     public Date getBirthdate() {
-        return birthdate;
+        return (Date) birthdate.clone();
     }
 
-    public void setBirthdate(Date birthdate) {
-        this.birthdate = birthdate;
+    public void setBirthdate(@Nonnull Date birthdate) {
+        this.birthdate = (Date) birthdate.clone();
     }
 
     public double getHeightInInches() {
@@ -151,99 +172,111 @@ public class User {
         this.heightInInches = heightInInches;
     }
 
+    @Nonnull
     public ActivityLevel getActivityLevel() {
         return activityLevel;
     }
 
-    public void setActivityLevel(ActivityLevel activityLevel) {
+    public void setActivityLevel(@Nonnull ActivityLevel activityLevel) {
         this.activityLevel = activityLevel;
     }
 
+    @Nonnull
     public String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
+    public void setEmail(@Nonnull String email) {
         this.email = email;
     }
 
+    @Nonnull
     public byte[] getPasswordHash() {
-        return passwordHash;
+        return passwordHash.clone();
     }
 
-    public void setPasswordHash(byte[] passwordHash) {
-        this.passwordHash = passwordHash;
+    public void setPasswordHash(@Nonnull byte[] passwordHash) {
+        this.passwordHash = passwordHash.clone();
     }
 
+    @Nonnull
     public byte[] getPasswordSalt() {
-        return passwordSalt;
+        return passwordSalt.clone();
     }
 
-    public void setPasswordSalt(byte[] passwordSalt) {
-        this.passwordSalt = passwordSalt;
+    public void setPasswordSalt(@Nonnull byte[] passwordSalt) {
+        this.passwordSalt = passwordSalt.clone();
     }
 
+    @Nonnull
     public String getFirstName() {
         return firstName;
     }
 
-    public void setFirstName(String firstName) {
+    public void setFirstName(@Nonnull String firstName) {
         this.firstName = firstName;
     }
 
+    @Nonnull
     public String getLastName() {
         return lastName;
     }
 
-    public void setLastName(String lastName) {
+    public void setLastName(@Nonnull String lastName) {
         this.lastName = lastName;
     }
 
+    @Nonnull
     public Timestamp getCreatedTime() {
-        return createdTime;
+        return (Timestamp) createdTime.clone();
     }
 
-    public void setCreatedTime(Timestamp createdTime) {
-        this.createdTime = createdTime;
+    public void setCreatedTime(@Nonnull Timestamp createdTime) {
+        this.createdTime = (Timestamp) createdTime.clone();
     }
 
+    @Nonnull
     public Timestamp getLastUpdatedTime() {
-        return lastUpdatedTime;
+        return (Timestamp) lastUpdatedTime.clone();
     }
 
-    public void setLastUpdatedTime(Timestamp lastUpdatedTime) {
-        this.lastUpdatedTime = lastUpdatedTime;
+    public void setLastUpdatedTime(@Nonnull Timestamp lastUpdatedTime) {
+        this.lastUpdatedTime = (Timestamp) lastUpdatedTime.clone();
     }
 
+    @Nonnull
     public Set<Weight> getWeights() {
         return weights;
     }
 
-    public void setWeights(Set<Weight> weights) {
+    public void setWeights(@Nonnull Set<Weight> weights) {
         this.weights = weights;
     }
 
+    @Nonnull
     public Set<Food> getFoods() {
         return foods;
     }
 
-    public void setFoods(Set<Food> foods) {
+    public void setFoods(@Nonnull Set<Food> foods) {
         this.foods = foods;
     }
 
+    @Nonnull
     public Set<FoodEaten> getFoodsEaten() {
         return foodsEaten;
     }
 
-    public void setFoodsEaten(Set<FoodEaten> foodsEaten) {
+    public void setFoodsEaten(@Nonnull Set<FoodEaten> foodsEaten) {
         this.foodsEaten = foodsEaten;
     }
 
+    @Nonnull
     public Set<ExercisePerformed> getExercisesPerformed() {
         return exercisesPerformed;
     }
 
-    public void setExercisesPerformed(Set<ExercisePerformed> exercisesPerformed) {
+    public void setExercisesPerformed(@Nonnull Set<ExercisePerformed> exercisesPerformed) {
         this.exercisesPerformed = exercisesPerformed;
     }
 

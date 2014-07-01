@@ -15,6 +15,8 @@ import net.steveperkins.fitnessjiffy.etl.reader.LegacySQLiteReader.WEIGHT;
 import net.steveperkins.fitnessjiffy.etl.reader.LegacySQLiteReader.FOOD_EATEN;
 import net.steveperkins.fitnessjiffy.etl.reader.LegacySQLiteReader.EXERCISE_PERFORMED;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -34,7 +36,7 @@ public class LegacySQLiteWriter extends JDBCWriter {
 
     private final DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 
-    public LegacySQLiteWriter(Connection connection, Datastore datastore) {
+    public LegacySQLiteWriter(@Nonnull Connection connection, @Nonnull Datastore datastore) {
         super(connection, datastore);
     }
 
@@ -251,7 +253,7 @@ public class LegacySQLiteWriter extends JDBCWriter {
     }
 
     @Override
-    protected void writeFood(Food food, UUID ownerId) throws SQLException {
+    protected void writeFood(@Nonnull Food food, @Nullable UUID ownerId) throws SQLException {
         int foodId = getNextAvailableId(foodIds.values());
         foodIds.put(food.getId(), foodId);
 
@@ -286,7 +288,7 @@ public class LegacySQLiteWriter extends JDBCWriter {
         }
     }
 
-    private int getNextAvailableId(Collection<Integer> ids) {
+    private int getNextAvailableId(@Nonnull Collection<Integer> ids) {
         if(ids == null || ids.isEmpty()) {
             return 1;
         }
