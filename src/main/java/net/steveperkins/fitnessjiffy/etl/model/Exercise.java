@@ -74,7 +74,8 @@ public class Exercise {
     }
 
     public void setDescription(@Nonnull String description) {
-        this.description = description.trim();
+        if(description != null) description = description.trim();
+        this.description = description;
     }
 
 }
