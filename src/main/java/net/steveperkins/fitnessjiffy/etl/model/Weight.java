@@ -4,16 +4,16 @@ import javax.annotation.Nonnull;
 import java.sql.Date;
 import java.util.UUID;
 
-public class Weight {
+public final class Weight {
 
     private UUID id;
     private Date date;
     private Double pounds;
 
     public Weight(
-            @Nonnull UUID id,
-            @Nonnull Date date,
-            @Nonnull Double pounds
+            @Nonnull final UUID id,
+            @Nonnull final Date date,
+            @Nonnull final Double pounds
     ) {
         this.id = id;
         this.date = (Date) date.clone();
@@ -28,7 +28,7 @@ public class Weight {
         return id;
     }
 
-    public void setId(@Nonnull UUID id) {
+    public void setId(@Nonnull final UUID id) {
         this.id = id;
     }
 
@@ -37,7 +37,7 @@ public class Weight {
         return (Date) date.clone();
     }
 
-    public void setDate(@Nonnull Date date) {
+    public void setDate(@Nonnull final Date date) {
         this.date = (Date) date.clone();
     }
 
@@ -46,7 +46,7 @@ public class Weight {
         return pounds;
     }
 
-    public void setPounds(@Nonnull Double pounds) {
+    public void setPounds(@Nonnull final Double pounds) {
         this.pounds = pounds;
     }
 

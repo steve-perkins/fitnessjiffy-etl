@@ -4,7 +4,7 @@ import javax.annotation.Nonnull;
 import java.sql.Date;
 import java.util.UUID;
 
-public class FoodEaten {
+public final class FoodEaten {
 
     private UUID id;
     private UUID foodId;
@@ -13,11 +13,11 @@ public class FoodEaten {
     private Double servingQty;
 
     public FoodEaten(
-            @Nonnull UUID id,
-            @Nonnull UUID foodId,
-            @Nonnull Date date,
-            @Nonnull Food.ServingType servingType,
-            @Nonnull Double servingQty
+            @Nonnull final UUID id,
+            @Nonnull final UUID foodId,
+            @Nonnull final Date date,
+            @Nonnull final Food.ServingType servingType,
+            @Nonnull final Double servingQty
     ) {
         this.id = id;
         this.foodId = foodId;
@@ -34,7 +34,7 @@ public class FoodEaten {
         return id;
     }
 
-    public void setId(@Nonnull UUID id) {
+    public void setId(@Nonnull final UUID id) {
         this.id = id;
     }
 
@@ -43,7 +43,7 @@ public class FoodEaten {
         return foodId;
     }
 
-    public void setFoodId(@Nonnull UUID foodId) {
+    public void setFoodId(@Nonnull final UUID foodId) {
         this.foodId = foodId;
     }
 
@@ -52,7 +52,7 @@ public class FoodEaten {
         return (Date) date.clone();
     }
 
-    public void setDate(@Nonnull Date date) {
+    public void setDate(@Nonnull final Date date) {
         this.date = (Date) date.clone();
     }
 
@@ -61,7 +61,7 @@ public class FoodEaten {
         return servingType;
     }
 
-    public void setServingType(@Nonnull Food.ServingType servingType) {
+    public void setServingType(@Nonnull final Food.ServingType servingType) {
         this.servingType = servingType;
     }
 
@@ -70,7 +70,7 @@ public class FoodEaten {
         return servingQty;
     }
 
-    public void setServingQty(@Nonnull Double servingQty) {
+    public void setServingQty(@Nonnull final Double servingQty) {
         this.servingQty = servingQty;
     }
 

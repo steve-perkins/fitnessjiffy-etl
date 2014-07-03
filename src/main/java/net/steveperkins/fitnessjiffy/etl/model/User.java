@@ -8,16 +8,16 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-public class User {
+public final class User {
 
     public enum Gender {
 
         MALE, FEMALE;
 
         @Nullable
-        public static Gender fromString(@Nonnull String s) {
-            for(Gender gender : Gender.values()) {
-                if(s != null && gender.toString().equalsIgnoreCase(s)) {
+        public static Gender fromString(@Nonnull final String s) {
+            for (final Gender gender : Gender.values()) {
+                if (gender.toString().equalsIgnoreCase(s)) {
                     return gender;
                 }
             }
@@ -37,14 +37,14 @@ public class User {
 
         private double value;
 
-        private ActivityLevel(double value) {
+        private ActivityLevel(final double value) {
             this.value = value;
         }
 
         @Nullable
-        public static ActivityLevel fromValue(double value) {
-            for(ActivityLevel activityLevel : ActivityLevel.values()) {
-                if(activityLevel.getValue() == value) {
+        public static ActivityLevel fromValue(final double value) {
+            for (final ActivityLevel activityLevel : ActivityLevel.values()) {
+                if (activityLevel.getValue() == value) {
                     return activityLevel;
                 }
             }
@@ -52,9 +52,9 @@ public class User {
         }
 
         @Nullable
-        public static ActivityLevel fromString(@Nonnull String s) {
-            for(ActivityLevel activityLevel : ActivityLevel.values()) {
-                if(activityLevel.toString().equalsIgnoreCase(s)) {
+        public static ActivityLevel fromString(@Nonnull final String s) {
+            for (final ActivityLevel activityLevel : ActivityLevel.values()) {
+                if (activityLevel.toString().equalsIgnoreCase(s)) {
                     return activityLevel;
                 }
             }
@@ -68,10 +68,10 @@ public class User {
         @Override
         @Nonnull
         public String toString() {
-            StringBuilder s = new StringBuilder(super.toString().toLowerCase().replace('_', ' '));
-            for(int index = 0; index < s.length(); index++) {
-                if(index == 0 || s.charAt(index - 1) == ' ') {
-                    String currentCharAsString = s.charAt(index) + "";
+            final StringBuilder s = new StringBuilder(super.toString().toLowerCase().replace('_', ' '));
+            for (int index = 0; index < s.length(); index++) {
+                if (index == 0 || s.charAt(index - 1) == ' ') {
+                    final String currentCharAsString = Character.toString(s.charAt(index));
                     s.replace(index, index + 1, currentCharAsString.toUpperCase());
                 }
             }
@@ -99,22 +99,22 @@ public class User {
     private Set<ExercisePerformed> exercisesPerformed = new HashSet<>();
 
     public User(
-            @Nonnull UUID id,
-            @Nonnull Gender gender,
-            @Nonnull Date birthdate,
-            double heightInInches,
-            @Nonnull ActivityLevel activityLevel,
-            @Nonnull String email,
-            @Nonnull byte[] passwordHash,
-            @Nonnull byte[] passwordSalt,
-            @Nonnull String firstName,
-            @Nonnull String lastName,
-            @Nonnull Timestamp createdTime,
-            @Nonnull Timestamp lastUpdatedTime,
-            @Nonnull Set<Weight> weights,
-            @Nonnull Set<Food> foods,
-            @Nonnull Set<FoodEaten> foodsEaten,
-            @Nonnull Set<ExercisePerformed> exercisesPerformed
+            @Nonnull final UUID id,
+            @Nonnull final Gender gender,
+            @Nonnull final Date birthdate,
+            final double heightInInches,
+            @Nonnull final ActivityLevel activityLevel,
+            @Nonnull final String email,
+            @Nonnull final byte[] passwordHash,
+            @Nonnull final byte[] passwordSalt,
+            @Nonnull final String firstName,
+            @Nonnull final String lastName,
+            @Nonnull final Timestamp createdTime,
+            @Nonnull final Timestamp lastUpdatedTime,
+            @Nonnull final Set<Weight> weights,
+            @Nonnull final Set<Food> foods,
+            @Nonnull final Set<FoodEaten> foodsEaten,
+            @Nonnull final Set<ExercisePerformed> exercisesPerformed
     ) {
         this.id = id;
         this.gender = gender;
@@ -142,7 +142,7 @@ public class User {
         return id;
     }
 
-    public void setId(@Nonnull UUID id) {
+    public void setId(@Nonnull final UUID id) {
         this.id = id;
     }
 
@@ -151,7 +151,7 @@ public class User {
         return gender;
     }
 
-    public void setGender(@Nonnull Gender gender) {
+    public void setGender(@Nonnull final Gender gender) {
         this.gender = gender;
     }
 
@@ -160,7 +160,7 @@ public class User {
         return (Date) birthdate.clone();
     }
 
-    public void setBirthdate(@Nonnull Date birthdate) {
+    public void setBirthdate(@Nonnull final Date birthdate) {
         this.birthdate = (Date) birthdate.clone();
     }
 
@@ -168,7 +168,7 @@ public class User {
         return heightInInches;
     }
 
-    public void setHeightInInches(double heightInInches) {
+    public void setHeightInInches(final double heightInInches) {
         this.heightInInches = heightInInches;
     }
 
@@ -177,7 +177,7 @@ public class User {
         return activityLevel;
     }
 
-    public void setActivityLevel(@Nonnull ActivityLevel activityLevel) {
+    public void setActivityLevel(@Nonnull final ActivityLevel activityLevel) {
         this.activityLevel = activityLevel;
     }
 
@@ -186,7 +186,7 @@ public class User {
         return email;
     }
 
-    public void setEmail(@Nonnull String email) {
+    public void setEmail(@Nonnull final String email) {
         this.email = email;
     }
 
@@ -195,7 +195,7 @@ public class User {
         return passwordHash.clone();
     }
 
-    public void setPasswordHash(@Nonnull byte[] passwordHash) {
+    public void setPasswordHash(@Nonnull final byte[] passwordHash) {
         this.passwordHash = passwordHash.clone();
     }
 
@@ -204,7 +204,7 @@ public class User {
         return passwordSalt.clone();
     }
 
-    public void setPasswordSalt(@Nonnull byte[] passwordSalt) {
+    public void setPasswordSalt(@Nonnull final byte[] passwordSalt) {
         this.passwordSalt = passwordSalt.clone();
     }
 
@@ -213,7 +213,7 @@ public class User {
         return firstName;
     }
 
-    public void setFirstName(@Nonnull String firstName) {
+    public void setFirstName(@Nonnull final String firstName) {
         this.firstName = firstName;
     }
 
@@ -222,7 +222,7 @@ public class User {
         return lastName;
     }
 
-    public void setLastName(@Nonnull String lastName) {
+    public void setLastName(@Nonnull final String lastName) {
         this.lastName = lastName;
     }
 
@@ -231,7 +231,7 @@ public class User {
         return (Timestamp) createdTime.clone();
     }
 
-    public void setCreatedTime(@Nonnull Timestamp createdTime) {
+    public void setCreatedTime(@Nonnull final Timestamp createdTime) {
         this.createdTime = (Timestamp) createdTime.clone();
     }
 
@@ -240,7 +240,7 @@ public class User {
         return (Timestamp) lastUpdatedTime.clone();
     }
 
-    public void setLastUpdatedTime(@Nonnull Timestamp lastUpdatedTime) {
+    public void setLastUpdatedTime(@Nonnull final Timestamp lastUpdatedTime) {
         this.lastUpdatedTime = (Timestamp) lastUpdatedTime.clone();
     }
 
@@ -249,7 +249,7 @@ public class User {
         return weights;
     }
 
-    public void setWeights(@Nonnull Set<Weight> weights) {
+    public void setWeights(@Nonnull final Set<Weight> weights) {
         this.weights = weights;
     }
 
@@ -258,7 +258,7 @@ public class User {
         return foods;
     }
 
-    public void setFoods(@Nonnull Set<Food> foods) {
+    public void setFoods(@Nonnull final Set<Food> foods) {
         this.foods = foods;
     }
 
@@ -267,7 +267,7 @@ public class User {
         return foodsEaten;
     }
 
-    public void setFoodsEaten(@Nonnull Set<FoodEaten> foodsEaten) {
+    public void setFoodsEaten(@Nonnull final Set<FoodEaten> foodsEaten) {
         this.foodsEaten = foodsEaten;
     }
 
@@ -276,7 +276,7 @@ public class User {
         return exercisesPerformed;
     }
 
-    public void setExercisesPerformed(@Nonnull Set<ExercisePerformed> exercisesPerformed) {
+    public void setExercisesPerformed(@Nonnull final Set<ExercisePerformed> exercisesPerformed) {
         this.exercisesPerformed = exercisesPerformed;
     }
 

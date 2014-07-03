@@ -19,107 +19,117 @@ import java.util.UUID;
 public abstract class JDBCReader {
 
     public interface TABLES {
-        public static String USER = "FITNESSJIFFY_USER";
-        public static String WEIGHT = "WEIGHT";
-        public static String FOOD = "FOOD";
-        public static String FOOD_EATEN = "FOOD_EATEN";
-        public static String EXERCISE = "EXERCISE";
-        public static String EXERCISE_PERFORMED = "EXERCISE_PERFORMED";
+        String USER = "FITNESSJIFFY_USER";
+        String WEIGHT = "WEIGHT";
+        String FOOD = "FOOD";
+        String FOOD_EATEN = "FOOD_EATEN";
+        String EXERCISE = "EXERCISE";
+        String EXERCISE_PERFORMED = "EXERCISE_PERFORMED";
     }
+
     public interface USER {
-        public static final String ID = "ID";
-        public static final String GENDER = "GENDER";
-        public static final String BIRTHDATE = "BIRTHDATE";
-        public static final String HEIGHT_IN_INCHES = "HEIGHT_IN_INCHES";
-        public static final String ACTIVITY_LEVEL = "ACTIVITY_LEVEL";
-        public static final String EMAIL = "EMAIL";
-        public static final String PASSWORD_HASH = "PASSWORD_HASH";
-        public static final String PASSWORD_SALT = "PASSWORD_SALT";
-        public static final String FIRST_NAME= "FIRST_NAME";
-        public static final String LAST_NAME = "LAST_NAME";
-        public static final String CREATED_TIME = "CREATED_TIME";
-        public static final String LAST_UPDATED_TIME = "LAST_UPDATED_TIME";
+        String ID = "ID";
+        String GENDER = "GENDER";
+        String BIRTHDATE = "BIRTHDATE";
+        String HEIGHT_IN_INCHES = "HEIGHT_IN_INCHES";
+        String ACTIVITY_LEVEL = "ACTIVITY_LEVEL";
+        String EMAIL = "EMAIL";
+        String PASSWORD_HASH = "PASSWORD_HASH";
+        String PASSWORD_SALT = "PASSWORD_SALT";
+        String FIRST_NAME = "FIRST_NAME";
+        String LAST_NAME = "LAST_NAME";
+        String CREATED_TIME = "CREATED_TIME";
+        String LAST_UPDATED_TIME = "LAST_UPDATED_TIME";
     }
+
     public interface WEIGHT {
-        public static final String ID = "ID";
-        public static final String USER_ID = "USER_ID";
-        public static final String DATE = "DATE";
-        public static final String POUNDS = "POUNDS";
+        String ID = "ID";
+        String USER_ID = "USER_ID";
+        String DATE = "DATE";
+        String POUNDS = "POUNDS";
     }
+
     public interface FOOD {
-        public static final String ID = "ID";
-        public static final String USER_ID = "OWNER_ID";
-        public static final String NAME = "NAME";
-        public static final String DEFAULT_SERVING_TYPE = "DEFAULT_SERVING_TYPE";
-        public static final String SERVING_TYPE_QTY = "SERVING_TYPE_QTY";
-        public static final String CALORIES = "CALORIES";
-        public static final String FAT = "FAT";
-        public static final String SATURATED_FAT = "SATURATED_FAT";
-        public static final String CARBS = "CARBS";
-        public static final String FIBER = "FIBER";
-        public static final String SUGAR = "SUGAR";
-        public static final String PROTEIN = "PROTEIN";
-        public static final String SODIUM = "SODIUM";
-        public static final String CREATED_TIME = "CREATED_TIME";
-        public static final String LAST_UPDATED_TIME = "LAST_UPDATED_TIME";
+        String ID = "ID";
+        String USER_ID = "OWNER_ID";
+        String NAME = "NAME";
+        String DEFAULT_SERVING_TYPE = "DEFAULT_SERVING_TYPE";
+        String SERVING_TYPE_QTY = "SERVING_TYPE_QTY";
+        String CALORIES = "CALORIES";
+        String FAT = "FAT";
+        String SATURATED_FAT = "SATURATED_FAT";
+        String CARBS = "CARBS";
+        String FIBER = "FIBER";
+        String SUGAR = "SUGAR";
+        String PROTEIN = "PROTEIN";
+        String SODIUM = "SODIUM";
+        String CREATED_TIME = "CREATED_TIME";
+        String LAST_UPDATED_TIME = "LAST_UPDATED_TIME";
     }
+
     public interface FOOD_EATEN {
-        public static final String ID = "ID";
-        public static final String USER_ID = "USER_ID";
-        public static final String FOOD_ID = "FOOD_ID";
-        public static final String DATE = "DATE";
-        public static final String SERVING_QTY = "SERVING_QTY";
-        public static final String SERVING_TYPE = "SERVING_TYPE";
+        String ID = "ID";
+        String USER_ID = "USER_ID";
+        String FOOD_ID = "FOOD_ID";
+        String DATE = "DATE";
+        String SERVING_QTY = "SERVING_QTY";
+        String SERVING_TYPE = "SERVING_TYPE";
     }
+
     public interface EXERCISE {
-        public static final String ID = "ID";
-        public static final String CATEGORY = "CATEGORY";
-        public static final String CODE = "CODE";
-        public static final String DESCRIPTION = "DESCRIPTION";
-        public static final String METABOLIC_EQUIVALENT = "METABOLIC_EQUIVALENT";
+        String ID = "ID";
+        String CATEGORY = "CATEGORY";
+        String CODE = "CODE";
+        String DESCRIPTION = "DESCRIPTION";
+        String METABOLIC_EQUIVALENT = "METABOLIC_EQUIVALENT";
     }
+
     public interface EXERCISE_PERFORMED {
-        public static final String ID = "ID";
-        public static final String USER_ID = "USER_ID";
-        public static final String EXERCISE_ID = "EXERCISE_ID";
-        public static final String DATE = "DATE";
-        public static final String MINUTES = "MINUTES";
+        String ID = "ID";
+        String USER_ID = "USER_ID";
+        String EXERCISE_ID = "EXERCISE_ID";
+        String DATE = "DATE";
+        String MINUTES = "MINUTES";
     }
 
     protected static final String EXERCISES_JSON_PATH = "/exercises.json";
 
     protected Connection connection;
 
-    public JDBCReader(@Nonnull Connection connection) {
-        if(connection == null) throw new NullPointerException();
+    public JDBCReader(@Nonnull final Connection connection) {
+        if (connection == null) {
+            throw new NullPointerException();
+        }
         this.connection = connection;
     }
 
     @Nonnull
     public Datastore read() throws Exception {
-        if(connection.isClosed()) throw new IllegalStateException();
-        Datastore datastore = new Datastore();
+        if (connection.isClosed()) {
+            throw new IllegalStateException();
+        }
+        final Datastore datastore = new Datastore();
 
         // Load exercises
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+ TABLES.EXERCISE);
-             ResultSet rs = statement.executeQuery() ) {
-            while(rs.next()) {
-                Exercise exercise = new Exercise(
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + TABLES.EXERCISE);
+             ResultSet rs = statement.executeQuery()) {
+            while (rs.next()) {
+                final Exercise exercise = new Exercise(
                         UUID.nameUUIDFromBytes(rs.getBytes(EXERCISE.ID)),
                         rs.getString(EXERCISE.CODE),
                         rs.getDouble(EXERCISE.METABOLIC_EQUIVALENT),
                         rs.getString(EXERCISE.CATEGORY),
                         rs.getString(EXERCISE.DESCRIPTION)
                 );
-                datastore.getExercises().add(exercise);
+                datastore.addExercise(exercise);
             }
         }
 
         // Load global foods
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOOD+" WHERE "+FOOD.USER_ID+" IS NULL");
-             ResultSet rs = statement.executeQuery() ) {
-            while(rs.next()) {
-                Food food = new Food(
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + TABLES.FOOD + " WHERE " + FOOD.USER_ID + " IS NULL");
+             ResultSet rs = statement.executeQuery()) {
+            while (rs.next()) {
+                final Food food = new Food(
                         UUID.nameUUIDFromBytes(rs.getBytes(FOOD.ID)),
                         rs.getString(FOOD.NAME),
                         Food.ServingType.fromString(rs.getString(FOOD.DEFAULT_SERVING_TYPE)),
@@ -135,15 +145,15 @@ public abstract class JDBCReader {
                         rs.getTimestamp(FOOD.CREATED_TIME),
                         rs.getTimestamp(FOOD.LAST_UPDATED_TIME)
                 );
-                datastore.getGlobalFoods().add(food);
+                datastore.addGlobalFood(food);
             }
         }
 
         // Load users (includes weights, user-owned foods, foods eaten, and exercises performed)
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.USER);
-             ResultSet rs = statement.executeQuery() ) {
-            while(rs.next()) {
-                datastore.getUsers().add(readUser(rs, connection));
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + TABLES.USER);
+             ResultSet rs = statement.executeQuery()) {
+            while (rs.next()) {
+                datastore.addUser(readUser(rs, connection));
             }
         }
 
@@ -151,16 +161,19 @@ public abstract class JDBCReader {
     }
 
     @Nonnull
-    protected User readUser(@Nonnull ResultSet rs, @Nonnull Connection connection) throws Exception {
-        byte[] userId = rs.getBytes(USER.ID);
+    protected User readUser(
+            @Nonnull final ResultSet rs,
+            @Nonnull final Connection connection
+    ) throws Exception {
+        final byte[] userId = rs.getBytes(USER.ID);
 
         // Weights
-        Set<Weight> weights = new HashSet<>();
-        try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.WEIGHT+" WHERE "+WEIGHT.USER_ID+" = ?") ) {
+        final Set<Weight> weights = new HashSet<>();
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + TABLES.WEIGHT + " WHERE " + WEIGHT.USER_ID + " = ?")) {
             statement.setBytes(1, userId);
-            try ( ResultSet weightsResultSet = statement.executeQuery() ) {
-                while(weightsResultSet.next()) {
-                    Weight weight = new Weight(
+            try (ResultSet weightsResultSet = statement.executeQuery()) {
+                while (weightsResultSet.next()) {
+                    final Weight weight = new Weight(
                             UUID.nameUUIDFromBytes(weightsResultSet.getBytes(WEIGHT.ID)),
                             weightsResultSet.getDate(WEIGHT.DATE),
                             weightsResultSet.getDouble(WEIGHT.POUNDS)
@@ -171,12 +184,12 @@ public abstract class JDBCReader {
         }
 
         // User-owned foods
-        Set<Food> foods = new HashSet<>();
-        try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOOD+" WHERE "+FOOD.USER_ID+" = ?") ) {
+        final Set<Food> foods = new HashSet<>();
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + TABLES.FOOD + " WHERE " + FOOD.USER_ID + " = ?")) {
             statement.setBytes(1, userId);
-            try ( ResultSet userFoodResultSet = statement.executeQuery() ) {
-                while(userFoodResultSet.next()) {
-                    Food food = new Food(
+            try (ResultSet userFoodResultSet = statement.executeQuery()) {
+                while (userFoodResultSet.next()) {
+                    final Food food = new Food(
                             UUID.nameUUIDFromBytes(userFoodResultSet.getBytes(FOOD.ID)),
                             userFoodResultSet.getString(FOOD.NAME),
                             Food.ServingType.fromString(userFoodResultSet.getString(FOOD.DEFAULT_SERVING_TYPE)),
@@ -198,12 +211,12 @@ public abstract class JDBCReader {
         }
 
         // Foods eaten
-        Set<FoodEaten> foodsEaten = new HashSet<>();
-        try ( PreparedStatement statement = connection.prepareStatement("SELECT * FROM "+TABLES.FOOD_EATEN+" WHERE "+FOOD_EATEN.USER_ID+" = ?") ) {
+        final Set<FoodEaten> foodsEaten = new HashSet<>();
+        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + TABLES.FOOD_EATEN + " WHERE " + FOOD_EATEN.USER_ID + " = ?")) {
             statement.setBytes(1, userId);
-            try ( ResultSet foodsEatenResultSet = statement.executeQuery() ) {
-                while(foodsEatenResultSet.next()) {
-                    FoodEaten foodEaten = new FoodEaten(
+            try (ResultSet foodsEatenResultSet = statement.executeQuery()) {
+                while (foodsEatenResultSet.next()) {
+                    final FoodEaten foodEaten = new FoodEaten(
                             UUID.nameUUIDFromBytes(foodsEatenResultSet.getBytes(FOOD_EATEN.ID)),
                             UUID.nameUUIDFromBytes(foodsEatenResultSet.getBytes(FOOD_EATEN.FOOD_ID)),
                             foodsEatenResultSet.getDate(FOOD_EATEN.DATE),
@@ -216,13 +229,13 @@ public abstract class JDBCReader {
         }
 
         // Exercises performed
-        Set<ExercisePerformed> exercisesPerformed = new HashSet<>();
-        try ( PreparedStatement statement = connection.prepareStatement(
-                "SELECT * FROM "+TABLES.EXERCISE_PERFORMED+" WHERE "+TABLES.EXERCISE_PERFORMED+"."+EXERCISE_PERFORMED.USER_ID+" = ?") ) {
+        final Set<ExercisePerformed> exercisesPerformed = new HashSet<>();
+        try (PreparedStatement statement = connection.prepareStatement(
+                "SELECT * FROM " + TABLES.EXERCISE_PERFORMED + " WHERE " + TABLES.EXERCISE_PERFORMED + "." + EXERCISE_PERFORMED.USER_ID + " = ?")) {
             statement.setBytes(1, userId);
-            try ( ResultSet exercisesPerformedResultSet = statement.executeQuery() ) {
-                while(exercisesPerformedResultSet.next()) {
-                    ExercisePerformed exercisePerformed = new ExercisePerformed(
+            try (ResultSet exercisesPerformedResultSet = statement.executeQuery()) {
+                while (exercisesPerformedResultSet.next()) {
+                    final ExercisePerformed exercisePerformed = new ExercisePerformed(
                             UUID.nameUUIDFromBytes(exercisesPerformedResultSet.getBytes(EXERCISE_PERFORMED.ID)),
                             UUID.nameUUIDFromBytes(exercisesPerformedResultSet.getBytes(EXERCISE_PERFORMED.EXERCISE_ID)),
                             exercisesPerformedResultSet.getDate(EXERCISE_PERFORMED.DATE),

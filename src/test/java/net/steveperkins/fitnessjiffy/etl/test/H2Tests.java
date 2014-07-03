@@ -12,7 +12,7 @@ import java.sql.DriverManager;
 
 import static junit.framework.TestCase.assertEquals;
 
-public class H2Tests extends AbstractTests {
+public final class H2Tests extends AbstractTests {
 
     @Before
     public void before() throws Exception {
@@ -24,14 +24,14 @@ public class H2Tests extends AbstractTests {
 
     @Test
     public void canReadTest() throws Exception {
-        Connection connection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2");
+        final Connection connection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2");
 
         // Test conversion to JSON string
-        String jsonString = new H2Reader(connection).read().toJSONString();
+        final String jsonString = new H2Reader(connection).read().toJSONString();
         assertEquals(EXPECTED_JSON_STRING_LENGTH, jsonString.length());
 
         // Test output to JSON file
-        File jsonFile = new File(CURRENT_WORKING_DIRECTORY + "output.json");
+        final File jsonFile = new File(CURRENT_WORKING_DIRECTORY + "output.json");
         new H2Reader(connection).read().toJSONFile(jsonFile);
         assertEquals(EXPECTED_JSON_FILE_LENGTH, jsonFile.length());
 
@@ -41,18 +41,18 @@ public class H2Tests extends AbstractTests {
     @Test
     public void canWriteTest() throws Exception {
         // Read the existing database
-        Connection readConnection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2");
-        Datastore datastore = new H2Reader(readConnection).read();
+        final Connection readConnection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2");
+        final Datastore datastore = new H2Reader(readConnection).read();
         readConnection.close();
 
         // Write its contents to a new database
-        Connection writeConnection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2-temp");
+        final Connection writeConnection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2-temp");
         new H2Writer(writeConnection, datastore).write();
         writeConnection.close();
 
         // Do a round-trip read of the new database, and confirm its etl has the same expected size
-        Connection confirmationConnection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2-temp");
-        Datastore newDatastore = new H2Reader(confirmationConnection).read();
+        final Connection confirmationConnection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2-temp");
+        final Datastore newDatastore = new H2Reader(confirmationConnection).read();
         confirmationConnection.close();
         assertEquals(newDatastore.getExercises().size(), datastore.getExercises().size());
         assertEquals(newDatastore.getGlobalFoods().size(), datastore.getGlobalFoods().size());

@@ -12,7 +12,7 @@ import java.sql.DriverManager;
 
 import static junit.framework.TestCase.assertEquals;
 
-public class LegacySQLiteTests extends AbstractTests {
+public final class LegacySQLiteTests extends AbstractTests {
 
     protected static final int EXPECTED_JSON_STRING_LENGTH = 3475965;
     protected static final int EXPECTED_JSON_FILE_LENGTH = 3476112;
@@ -26,14 +26,14 @@ public class LegacySQLiteTests extends AbstractTests {
 
     @Test
     public void canReadTest() throws Exception {
-        Connection connection = DriverManager.getConnection("jdbc:sqlite:" + CURRENT_WORKING_DIRECTORY + "sqlite.db");
+        final Connection connection = DriverManager.getConnection("jdbc:sqlite:" + CURRENT_WORKING_DIRECTORY + "sqlite.db");
 
         // Test conversion to JSON string
-        String jsonString = new LegacySQLiteReader(connection).read().toJSONString();
+        final String jsonString = new LegacySQLiteReader(connection).read().toJSONString();
         assertEquals(EXPECTED_JSON_STRING_LENGTH, jsonString.length());
 
         // Test output to JSON file
-        File jsonFile = new File(CURRENT_WORKING_DIRECTORY + "output.json");
+        final File jsonFile = new File(CURRENT_WORKING_DIRECTORY + "output.json");
         new LegacySQLiteReader(connection).read().toJSONFile(jsonFile);
         assertEquals(EXPECTED_JSON_FILE_LENGTH, jsonFile.length());
 
@@ -43,18 +43,18 @@ public class LegacySQLiteTests extends AbstractTests {
     @Test
     public void canWriteTest() throws Exception {
         // Read the existing database
-        Connection readConnection = DriverManager.getConnection("jdbc:sqlite:" + CURRENT_WORKING_DIRECTORY + "sqlite.db");
-        Datastore datastore = new LegacySQLiteReader(readConnection).read();
+        final Connection readConnection = DriverManager.getConnection("jdbc:sqlite:" + CURRENT_WORKING_DIRECTORY + "sqlite.db");
+        final Datastore datastore = new LegacySQLiteReader(readConnection).read();
         readConnection.close();
 
         // Write its contents to a new database
-        Connection writeConnection = DriverManager.getConnection("jdbc:sqlite:" + CURRENT_WORKING_DIRECTORY + "sqlite-temp.db");
+        final Connection writeConnection = DriverManager.getConnection("jdbc:sqlite:" + CURRENT_WORKING_DIRECTORY + "sqlite-temp.db");
         new LegacySQLiteWriter(writeConnection, datastore).write();
         writeConnection.close();
 
         // Do a round-trip read of the new database, and confirm its etl has the same expected size
-        Connection confirmationConnection = DriverManager.getConnection("jdbc:sqlite:" + CURRENT_WORKING_DIRECTORY + "sqlite-temp.db");
-        Datastore newDatastore = new LegacySQLiteReader(confirmationConnection).read();
+        final Connection confirmationConnection = DriverManager.getConnection("jdbc:sqlite:" + CURRENT_WORKING_DIRECTORY + "sqlite-temp.db");
+        final Datastore newDatastore = new LegacySQLiteReader(confirmationConnection).read();
         confirmationConnection.close();
         assertEquals(newDatastore.getExercises().size(), datastore.getExercises().size());
         assertEquals(newDatastore.getGlobalFoods().size(), datastore.getGlobalFoods().size());

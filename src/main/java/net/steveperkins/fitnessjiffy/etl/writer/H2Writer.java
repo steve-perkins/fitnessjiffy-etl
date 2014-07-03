@@ -2,19 +2,23 @@ package net.steveperkins.fitnessjiffy.etl.writer;
 
 import net.steveperkins.fitnessjiffy.etl.model.Datastore;
 
+import javax.annotation.Nonnull;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class H2Writer extends JDBCWriter {
+public final class H2Writer extends JDBCWriter {
 
-    public H2Writer(Connection connection, Datastore datastore) {
+    public H2Writer(
+            @Nonnull final Connection connection,
+            @Nonnull final Datastore datastore
+    ) {
         super(connection, datastore);
     }
 
     @Override
     protected void writeSchema() throws SQLException {
-        String ddl = "CREATE USER IF NOT EXISTS \"\" SALT '' HASH '' ADMIN;\n" +
+        final String ddl = "CREATE USER IF NOT EXISTS \"\" SALT '' HASH '' ADMIN;\n" +
                 "\n" +
                 "DROP TABLE IF EXISTS PUBLIC.EXERCISE_PERFORMED;\n" +
                 "DROP TABLE IF EXISTS PUBLIC.EXERCISE;\n" +

@@ -9,7 +9,7 @@ import org.junit.Test;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
-public class MigrationTests extends AbstractTests {
+public final class MigrationTests extends AbstractTests {
 
     @Before
     public void before() throws Exception {
@@ -22,11 +22,11 @@ public class MigrationTests extends AbstractTests {
 
     @Test
     public void canMigrateLegacySQLiteToH2Test() throws Exception {
-        Connection legacySQLiteConnection = DriverManager.getConnection("jdbc:sqlite:" + CURRENT_WORKING_DIRECTORY + "sqlite.db");
-        Datastore datastore = new LegacySQLiteReader(legacySQLiteConnection).read();
+        final Connection legacySQLiteConnection = DriverManager.getConnection("jdbc:sqlite:" + CURRENT_WORKING_DIRECTORY + "sqlite.db");
+        final Datastore datastore = new LegacySQLiteReader(legacySQLiteConnection).read();
         legacySQLiteConnection.close();
 
-        Connection h2Connection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2-temp");
+        final Connection h2Connection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2-temp");
         new H2Writer(h2Connection, datastore).write();
         h2Connection.close();
     }

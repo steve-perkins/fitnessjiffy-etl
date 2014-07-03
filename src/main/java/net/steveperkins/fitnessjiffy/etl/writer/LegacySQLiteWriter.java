@@ -25,7 +25,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class LegacySQLiteWriter extends JDBCWriter {
+public final class LegacySQLiteWriter extends JDBCWriter {
 
     private final Map<UUID, Integer> userIds = new HashMap<>();
     private final Map<UUID, Integer> exerciseIds = new HashMap<>();
@@ -36,13 +36,16 @@ public class LegacySQLiteWriter extends JDBCWriter {
 
     private final DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 
-    public LegacySQLiteWriter(@Nonnull Connection connection, @Nonnull Datastore datastore) {
+    public LegacySQLiteWriter(
+            @Nonnull final Connection connection,
+            @Nonnull final Datastore datastore
+    ) {
         super(connection, datastore);
     }
 
     @Override
     protected void writeSchema() throws SQLException {
-        String ddl = "CREATE TABLE IF NOT EXISTS [EXERCISES] (\n" +
+        final String ddl = "CREATE TABLE IF NOT EXISTS [EXERCISES] (\n" +
                 "  [ID] INTEGER PRIMARY KEY, \n" +
                 "  [NAME] [VARCHAR(50)] NOT NULL UNIQUE, \n" +
                 "  [CALORIES_PER_HOUR] INTEGER NOT NULL, \n" +
@@ -121,21 +124,21 @@ public class LegacySQLiteWriter extends JDBCWriter {
 
     @Override
     protected void writeExercises() throws SQLException {
-        List<String> descriptionsWritten = new ArrayList<>();
+        final List<String> descriptionsWritten = new ArrayList<>();
 
-        for(Exercise exercise : datastore.getExercises()) {
-            if(!descriptionsWritten.contains(exercise.getDescription())) {
+        for (final Exercise exercise : datastore.getExercises()) {
+            if (!descriptionsWritten.contains(exercise.getDescription())) {
                 descriptionsWritten.add(exercise.getDescription());
 
-                int exerciseId = getNextAvailableId(exerciseIds.values());
+                final int exerciseId = getNextAvailableId(exerciseIds.values());
                 exerciseIds.put(exercise.getId(), exerciseId);
 
-                String sql = "INSERT INTO "+TABLES.EXERCISE+" ("+ EXERCISE.ID+", "+EXERCISE.NAME+", "+EXERCISE.CALORIES_PER_HOUR
-                        +", "+EXERCISE.HIDDEN+") VALUES (?, ?, ?, ?)";
+                final String sql = "INSERT INTO " + TABLES.EXERCISE + " (" + EXERCISE.ID + ", " + EXERCISE.NAME + ", " + EXERCISE.CALORIES_PER_HOUR
+                        + ", " + EXERCISE.HIDDEN + ") VALUES (?, ?, ?, ?)";
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
                     statement.setInt(1, exerciseId);
                     statement.setString(2, exercise.getDescription());
-                    int caloriesBurnedPerHour = (int) (exercise.getMetabolicEquivalent() * (300 / 2.2));
+                    final int caloriesBurnedPerHour = (int) (exercise.getMetabolicEquivalent() * (300 / 2.2));
                     statement.setInt(3, caloriesBurnedPerHour);
                     statement.setString(4, "FALSE");
                     statement.executeUpdate();
@@ -146,19 +149,19 @@ public class LegacySQLiteWriter extends JDBCWriter {
 
     @Override
     protected void writeUsers() throws Exception {
-        for(User user : datastore.getUsers()) {
-            int userId = getNextAvailableId(userIds.values());
+        for (final User user : datastore.getUsers()) {
+            final int userId = getNextAvailableId(userIds.values());
             userIds.put(user.getId(), userId);
 
-            Calendar birthDate = new GregorianCalendar();
+            final Calendar birthDate = new GregorianCalendar();
             birthDate.setTimeInMillis(user.getBirthdate().getTime());
-            Calendar currentDate = new GregorianCalendar();
-            int age = currentDate.get(Calendar.YEAR) - birthDate.get(Calendar.YEAR);
+            final Calendar currentDate = new GregorianCalendar();
+            final int age = currentDate.get(Calendar.YEAR) - birthDate.get(Calendar.YEAR);
 
 
-            String userSql = "INSERT INTO "+ TABLES.USER+" ("+USER.ID+", "+ USER.GENDER+", "+USER.AGE+", "+USER.HEIGHT_IN_INCHES
-                    +", "+USER.ACTIVITY_LEVEL+", "+USER.USERNAME+", "+USER.PASSWORD+", "+USER.FIRST_NAME+", "
-                    +USER.LAST_NAME+", "+USER.IS_ACTIVE+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            final String userSql = "INSERT INTO " + TABLES.USER + " (" + USER.ID + ", " + USER.GENDER + ", " + USER.AGE + ", " + USER.HEIGHT_IN_INCHES
+                    + ", " + USER.ACTIVITY_LEVEL + ", " + USER.USERNAME + ", " + USER.PASSWORD + ", " + USER.FIRST_NAME + ", "
+                    + USER.LAST_NAME + ", " + USER.IS_ACTIVE + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(userSql)) {
                 statement.setInt(1, userId);
                 statement.setString(2, user.getGender().toString());
@@ -183,12 +186,12 @@ public class LegacySQLiteWriter extends JDBCWriter {
                 statement.executeUpdate();
             }
 
-            for(Weight weight : user.getWeights()) {
-                int weightId = getNextAvailableId(weightIds.values());
+            for (final Weight weight : user.getWeights()) {
+                final int weightId = getNextAvailableId(weightIds.values());
                 weightIds.put(weight.getId(), weightId);
 
-                String sql = "INSERT INTO "+TABLES.WEIGHT+" ("+ WEIGHT.ID+", "+WEIGHT.USER_ID+", "+WEIGHT.DATE+", "
-                        +WEIGHT.POUNDS+") VALUES (?, ?, ?, ?)";
+                final String sql = "INSERT INTO " + TABLES.WEIGHT + " (" + WEIGHT.ID + ", " + WEIGHT.USER_ID + ", " + WEIGHT.DATE + ", "
+                        + WEIGHT.POUNDS + ") VALUES (?, ?, ?, ?)";
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
                     statement.setInt(1, weightId);
                     statement.setInt(2, userId);
@@ -198,24 +201,24 @@ public class LegacySQLiteWriter extends JDBCWriter {
                 }
             }
 
-            for(Food food : user.getFoods()) {
+            for (final Food food : user.getFoods()) {
                 writeFood(food, user.getId());
             }
 
-            for(FoodEaten foodEaten : user.getFoodsEaten()) {
-                if(foodIds.get(foodEaten.getFoodId()) == null) {
+            for (final FoodEaten foodEaten : user.getFoodsEaten()) {
+                if (foodIds.get(foodEaten.getFoodId()) == null) {
                     throw new Exception("Found no food matching FOOD_EATEN with ID: " + foodEaten.getId());
                 }
 
-                int foodEatenId = getNextAvailableId(foodEatenIds.values());
+                final int foodEatenId = getNextAvailableId(foodEatenIds.values());
                 foodEatenIds.put(foodEaten.getId(), foodEatenId);
 
-                String sql = "INSERT INTO "+TABLES.FOOD_EATEN+" ("+FOOD_EATEN.ID+", "+FOOD_EATEN.USER_ID+", "
-                        +FOOD_EATEN.FOOD_ID+", "+FOOD_EATEN.DATE+", "+FOOD_EATEN.SERVING_TYPE+", "
-                        +FOOD_EATEN.SERVING_QTY+") VALUES (?, ?, ?, ?, ? ,?)";
+                final String sql = "INSERT INTO " + TABLES.FOOD_EATEN + " (" + FOOD_EATEN.ID + ", " + FOOD_EATEN.USER_ID + ", "
+                        + FOOD_EATEN.FOOD_ID + ", " + FOOD_EATEN.DATE + ", " + FOOD_EATEN.SERVING_TYPE + ", "
+                        + FOOD_EATEN.SERVING_QTY + ") VALUES (?, ?, ?, ?, ? ,?)";
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
                     String servingType = foodEaten.getServingType().toString();
-                    if(!servingType.equals("CUSTOM")) {
+                    if (!servingType.equals("CUSTOM")) {
                         servingType = servingType.toLowerCase();
                     }
 
@@ -229,17 +232,17 @@ public class LegacySQLiteWriter extends JDBCWriter {
                 }
             }
 
-            for(ExercisePerformed exercisePerformed : user.getExercisesPerformed()) {
-                if(exerciseIds.get(exercisePerformed.getExerciseId()) == null) {
+            for (final ExercisePerformed exercisePerformed : user.getExercisesPerformed()) {
+                if (exerciseIds.get(exercisePerformed.getExerciseId()) == null) {
                     throw new Exception("Found no exercise matching EXERCISES_PERFORMED with ID: " + exercisePerformed.getId());
                 }
 
-                int exercisePerfomedId = getNextAvailableId(exercisePerformedIds.values());
+                final int exercisePerfomedId = getNextAvailableId(exercisePerformedIds.values());
                 exercisePerformedIds.put(exercisePerformed.getId(), exercisePerfomedId);
 
-                String sql = "INSERT INTO "+TABLES.EXERCISE_PERFORMED+" ("+EXERCISE_PERFORMED.ID+", "
-                        +EXERCISE_PERFORMED.USER_ID+", "+EXERCISE_PERFORMED.EXERCISE_ID+", "
-                        +EXERCISE_PERFORMED.DATE+", "+EXERCISE_PERFORMED.MINUTES+") VALUES (?, ?, ?, ?, ?)";
+                final String sql = "INSERT INTO " + TABLES.EXERCISE_PERFORMED + " (" + EXERCISE_PERFORMED.ID + ", "
+                        + EXERCISE_PERFORMED.USER_ID + ", " + EXERCISE_PERFORMED.EXERCISE_ID + ", "
+                        + EXERCISE_PERFORMED.DATE + ", " + EXERCISE_PERFORMED.MINUTES + ") VALUES (?, ?, ?, ?, ?)";
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
                     statement.setInt(1, exercisePerfomedId);
                     statement.setInt(2, userId);
@@ -253,19 +256,22 @@ public class LegacySQLiteWriter extends JDBCWriter {
     }
 
     @Override
-    protected void writeFood(@Nonnull Food food, @Nullable UUID ownerId) throws SQLException {
-        int foodId = getNextAvailableId(foodIds.values());
+    protected void writeFood(
+            @Nonnull final Food food,
+            @Nullable final UUID ownerId
+    ) throws SQLException {
+        final int foodId = getNextAvailableId(foodIds.values());
         foodIds.put(food.getId(), foodId);
 
-        String sql = "INSERT INTO "+TABLES.FOOD+" ("+FOOD.ID+", "+FOOD.NAME+", "+FOOD.DEFAULT_SERVING_TYPE+", "
-                +FOOD.SERVING_TYPE_QTY+", "+FOOD.CALORIES+", "+FOOD.FAT+", "+FOOD.SATURATED_FAT+", "
-                +FOOD.CARBS+", "+FOOD.FIBER+", "+FOOD.SUGAR+", "+FOOD.PROTEIN+", "+FOOD.SODIUM;
+        String sql = "INSERT INTO " + TABLES.FOOD + " (" + FOOD.ID + ", " + FOOD.NAME + ", " + FOOD.DEFAULT_SERVING_TYPE + ", "
+                + FOOD.SERVING_TYPE_QTY + ", " + FOOD.CALORIES + ", " + FOOD.FAT + ", " + FOOD.SATURATED_FAT + ", "
+                + FOOD.CARBS + ", " + FOOD.FIBER + ", " + FOOD.SUGAR + ", " + FOOD.PROTEIN + ", " + FOOD.SODIUM;
         sql += (ownerId != null && userIds.get(ownerId) != null)
-                ? ", "+FOOD.USER_ID+") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                ? ", " + FOOD.USER_ID + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                 : ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try(PreparedStatement statement = connection.prepareStatement(sql)) {
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
             String defaultServingType = food.getDefaultServingType().toString();
-            if(!defaultServingType.equals("CUSTOM")) {
+            if (!defaultServingType.equals("CUSTOM")) {
                 defaultServingType = defaultServingType.toLowerCase();
             }
 
@@ -281,21 +287,24 @@ public class LegacySQLiteWriter extends JDBCWriter {
             statement.setFloat(10, food.getSugar().floatValue());
             statement.setFloat(11, food.getProtein().floatValue());
             statement.setFloat(12, food.getSodium().floatValue());
-            if(ownerId != null && userIds.get(ownerId) != null) {
+            if (ownerId != null && userIds.get(ownerId) != null) {
                 statement.setInt(13, userIds.get(ownerId));
             }
             statement.executeUpdate();
         }
     }
 
-    private int getNextAvailableId(@Nonnull Collection<Integer> ids) {
-        if(ids == null || ids.isEmpty()) {
-            return 1;
+    private int getNextAvailableId(@Nonnull final Collection<Integer> ids) {
+        int nextAvailableId;
+        if (ids == null || ids.isEmpty()) {
+            nextAvailableId = 1;
+        } else {
+            final List<Integer> sortedIds = new ArrayList<>(ids);
+            Collections.sort(sortedIds);
+            final int currentMax = sortedIds.get(sortedIds.size() - 1);
+            nextAvailableId = currentMax + 1;
         }
-        List<Integer> sortedIds = new ArrayList<>(ids);
-        Collections.sort(sortedIds);
-        int currentMax = sortedIds.get(sortedIds.size() - 1);
-        return currentMax + 1;
+        return nextAvailableId;
     }
 
 }

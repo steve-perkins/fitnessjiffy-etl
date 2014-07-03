@@ -13,11 +13,11 @@ import java.sql.Statement;
 
 import static junit.framework.TestCase.assertEquals;
 
-public class PostgresTests extends AbstractTests {
+public final class PostgresTests extends AbstractTests {
 
     private static final String JDBC_BASE_URL = "jdbc:postgresql://localhost/";
-    private static final String JDBC_USERNAME = "postgres";
-    private static final String JDBC_PASSWORD = "postgres";
+    private static final String JDBC_USERNAME = "admin";
+    private static final String JDBC_PASSWORD = "admin";
 
     @Before
     public void before() throws Exception {
@@ -28,34 +28,34 @@ public class PostgresTests extends AbstractTests {
     @Test
     public void roundTripTest() throws Exception {
         // Read test data from the test H2 database
-        Connection readConnection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2");
-        Datastore datastore = new H2Reader(readConnection).read();
+        final Connection readConnection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2");
+        final Datastore datastore = new H2Reader(readConnection).read();
         readConnection.close();
 
         // Create a temporary new PostgreSQL database
-        String tempDbName = "fitnessjiffy_" + new java.util.Date().getTime();
-        Connection templateConnection = DriverManager.getConnection(JDBC_BASE_URL + "template1", JDBC_USERNAME, JDBC_PASSWORD);
-        Statement templateStatement = templateConnection.createStatement();
+        final String tempDbName = "fitnessjiffy_" + new java.util.Date().getTime();
+        final Connection templateConnection = DriverManager.getConnection(JDBC_BASE_URL + "template1", JDBC_USERNAME, JDBC_PASSWORD);
+        final Statement templateStatement = templateConnection.createStatement();
         templateStatement.execute("CREATE DATABASE " + tempDbName + " WITH ENCODING = 'UTF8'");
         templateStatement.close();
         templateConnection.close();
 
         // Write the test data to the new PostgreSQL database
-        Connection writeConnection = DriverManager.getConnection(JDBC_BASE_URL + tempDbName, JDBC_USERNAME, JDBC_PASSWORD);
+        final Connection writeConnection = DriverManager.getConnection(JDBC_BASE_URL + tempDbName, JDBC_USERNAME, JDBC_PASSWORD);
         new PostgresWriter(writeConnection, datastore).write();
         writeConnection.close();
 
         // Do a round-trip read of the new database, and confirm its etl has the same expected size
-        Connection confirmationConnection = DriverManager.getConnection(JDBC_BASE_URL + tempDbName, JDBC_USERNAME, JDBC_PASSWORD);
-        Datastore newDatastore = new PostgresReader(confirmationConnection).read();
+        final Connection confirmationConnection = DriverManager.getConnection(JDBC_BASE_URL + tempDbName, JDBC_USERNAME, JDBC_PASSWORD);
+        final Datastore newDatastore = new PostgresReader(confirmationConnection).read();
         confirmationConnection.close();
 
         // Drop the temporary PostgreSQL database
-        templateConnection = DriverManager.getConnection(JDBC_BASE_URL + "template1", JDBC_USERNAME, JDBC_PASSWORD);
-        templateStatement = templateConnection.createStatement();
-        templateStatement.execute("DROP DATABASE " + tempDbName);
-        templateStatement.close();
-        templateConnection.close();
+//        templateConnection = DriverManager.getConnection(JDBC_BASE_URL + "template1", JDBC_USERNAME, JDBC_PASSWORD);
+//        templateStatement = templateConnection.createStatement();
+//        templateStatement.execute("DROP DATABASE " + tempDbName);
+//        templateStatement.close();
+//        templateConnection.close();
 
         // Check results
         assertEquals(newDatastore.getExercises().size(), datastore.getExercises().size());

@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import javax.annotation.Nonnull;
 import java.util.UUID;
 
-public class Exercise {
+public final class Exercise {
 
     private UUID id;
     private String code;
@@ -16,11 +16,11 @@ public class Exercise {
 
     @JsonCreator
     public Exercise(
-            @Nonnull @JsonProperty("id") UUID id,
-            @Nonnull @JsonProperty("code") String code,
-            @Nonnull @JsonProperty("metabolicEquivalent") Double metabolicEquivalent,
-            @Nonnull @JsonProperty("category") String category,
-            @Nonnull @JsonProperty("description") String description
+            @Nonnull @JsonProperty("id") final UUID id,
+            @Nonnull @JsonProperty("code") final String code,
+            @Nonnull @JsonProperty("metabolicEquivalent") final Double metabolicEquivalent,
+            @Nonnull @JsonProperty("category") final String category,
+            @Nonnull @JsonProperty("description") final String description
     ) {
         this.id = id;
         this.code = code;
@@ -37,7 +37,7 @@ public class Exercise {
         return id;
     }
 
-    public void setId(@Nonnull UUID id) {
+    public void setId(@Nonnull final UUID id) {
         this.id = id;
     }
 
@@ -46,7 +46,7 @@ public class Exercise {
         return code;
     }
 
-    public void setCode(@Nonnull String code) {
+    public void setCode(@Nonnull final String code) {
         this.code = code;
     }
 
@@ -55,7 +55,7 @@ public class Exercise {
         return metabolicEquivalent;
     }
 
-    public void setMetabolicEquivalent(@Nonnull Double metabolicEquivalent) {
+    public void setMetabolicEquivalent(@Nonnull final Double metabolicEquivalent) {
         this.metabolicEquivalent = metabolicEquivalent;
     }
 
@@ -64,7 +64,7 @@ public class Exercise {
         return category;
     }
 
-    public void setCategory(@Nonnull String category) {
+    public void setCategory(@Nonnull final String category) {
         this.category = category;
     }
 
@@ -73,9 +73,8 @@ public class Exercise {
         return description.trim();
     }
 
-    public void setDescription(@Nonnull String description) {
-        if(description != null) description = description.trim();
-        this.description = description;
+    public void setDescription(@Nonnull final String description) {
+        this.description = (description == null) ? description : description.trim();
     }
 
 }
