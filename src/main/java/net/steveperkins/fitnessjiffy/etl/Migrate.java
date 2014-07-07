@@ -36,19 +36,20 @@ public final class Migrate {
             if (commandLine.hasOption("h")) {
                 showHelp(options);
             }
-            final String inputType = commandLine.getOptionValue("i") != null ? commandLine.getOptionValue("i").trim().toLowerCase() : "";
-            final String inputLocation = commandLine.getOptionValue("l") != null ? commandLine.getOptionValue("l").trim().toLowerCase() : "";
-            final String inputUsername = commandLine.getOptionValue("u") != null ? commandLine.getOptionValue("u").trim().toLowerCase() : "";
-            final String inputPassword = commandLine.getOptionValue("p") != null ? commandLine.getOptionValue("p").trim().toLowerCase() : "";
-            final String outputType = commandLine.getOptionValue("O") != null ? commandLine.getOptionValue("O").trim().toLowerCase() : "";
-            final String outputLocation = commandLine.getOptionValue("L") != null ? commandLine.getOptionValue("L").trim().toLowerCase() : "";
-            final String outputUsername = commandLine.getOptionValue("U") != null ? commandLine.getOptionValue("U").trim().toLowerCase() : "";
-            final String outputPassword = commandLine.getOptionValue("P") != null ? commandLine.getOptionValue("P").trim().toLowerCase() : "";
+            final String inputType = commandLine.getOptionValue("i") == null ? "" : commandLine.getOptionValue("i").trim();
+            final String inputLocation = commandLine.getOptionValue("l") == null ? "" : commandLine.getOptionValue("l").trim();
+            final String inputUsername = commandLine.getOptionValue("u") == null ? "" : commandLine.getOptionValue("u").trim();
+            final String inputPassword = commandLine.getOptionValue("p") == null ? "" : commandLine.getOptionValue("p").trim();
+            final String outputType = commandLine.getOptionValue("O") == null ? "" : commandLine.getOptionValue("O").trim();
+            final String outputLocation = commandLine.getOptionValue("L") == null ? "" : commandLine.getOptionValue("L").trim();
+            final String outputUsername = commandLine.getOptionValue("U") == null ? "" : commandLine.getOptionValue("U").trim();
+            final String outputPassword = commandLine.getOptionValue("P") == null ? "" : commandLine.getOptionValue("P").trim();
             if (inputType.isEmpty() || outputType.isEmpty() || inputLocation.isEmpty() || inputLocation.isEmpty() || outputLocation.isEmpty()) {
                 System.out.println("\nYou must specify a type and location for the import database or JSON file, and the destination database or JSON file\n");
                 showHelp(options);
             }
-            if ((!inputType.equals("json") && !inputType.equals("sqlite") && !inputType.equals("h2") && !inputType.equals("postgres"))
+            if (
+                    (!inputType.equals("json") && !inputType.equals("sqlite") && !inputType.equals("h2") && !inputType.equals("postgres"))
                     || (!outputType.equals("json") && !outputType.equals("sqlite") && !outputType.equals("h2") && !outputType.equals("postgres"))
                     ) {
                 System.out.println("\nImport and destination database must be of type \"json\", \"sqlite\", \"h2\", or \"postgres\"\n");
