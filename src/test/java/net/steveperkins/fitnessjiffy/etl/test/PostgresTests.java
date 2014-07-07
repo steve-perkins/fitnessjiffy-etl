@@ -34,8 +34,8 @@ public final class PostgresTests extends AbstractTests {
 
         // Create a temporary new PostgreSQL database
         final String tempDbName = "fitnessjiffy_" + new java.util.Date().getTime();
-        final Connection templateConnection = DriverManager.getConnection(JDBC_BASE_URL + "template1", JDBC_USERNAME, JDBC_PASSWORD);
-        final Statement templateStatement = templateConnection.createStatement();
+        Connection templateConnection = DriverManager.getConnection(JDBC_BASE_URL + "template1", JDBC_USERNAME, JDBC_PASSWORD);
+        Statement templateStatement = templateConnection.createStatement();
         templateStatement.execute("CREATE DATABASE " + tempDbName + " WITH ENCODING = 'UTF8'");
         templateStatement.close();
         templateConnection.close();
@@ -51,11 +51,11 @@ public final class PostgresTests extends AbstractTests {
         confirmationConnection.close();
 
         // Drop the temporary PostgreSQL database
-//        templateConnection = DriverManager.getConnection(JDBC_BASE_URL + "template1", JDBC_USERNAME, JDBC_PASSWORD);
-//        templateStatement = templateConnection.createStatement();
-//        templateStatement.execute("DROP DATABASE " + tempDbName);
-//        templateStatement.close();
-//        templateConnection.close();
+        templateConnection = DriverManager.getConnection(JDBC_BASE_URL + "template1", JDBC_USERNAME, JDBC_PASSWORD);
+        templateStatement = templateConnection.createStatement();
+        templateStatement.execute("DROP DATABASE " + tempDbName);
+        templateStatement.close();
+        templateConnection.close();
 
         // Check results
         assertEquals(newDatastore.getExercises().size(), datastore.getExercises().size());

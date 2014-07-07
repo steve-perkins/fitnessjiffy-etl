@@ -2,6 +2,7 @@ package net.steveperkins.fitnessjiffy.etl.reader;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.steveperkins.fitnessjiffy.etl.crypto.BCrypt;
 import net.steveperkins.fitnessjiffy.etl.model.Datastore;
 import net.steveperkins.fitnessjiffy.etl.model.Exercise;
 import net.steveperkins.fitnessjiffy.etl.model.ExercisePerformed;
@@ -12,9 +13,6 @@ import net.steveperkins.fitnessjiffy.etl.model.Weight;
 
 import javax.annotation.Nonnull;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.sql.*;
 import java.sql.Date;
@@ -36,7 +34,6 @@ public final class LegacySQLiteReader extends JDBCReader {
         String BIRTHDATE = null;
         String EMAIL = null;
         String PASSWORD_HASH = null;
-        String PASSWORD_SALT = null;
         String CREATED_TIME = null;
         String LAST_UPDATED_TIME = null;
         String AGE = "AGE";
@@ -195,16 +192,9 @@ public final class LegacySQLiteReader extends JDBCReader {
             throw new Exception("Malformed user with ID: " + id + ", no password");
         }
 
-        // Generate a random salt, and hash the password 1,000 times (https://www.owasp.org/index.php/Hashing_Java)
-        final byte[] passwordSalt = ByteBuffer.allocate(16).putLong(new SecureRandom().nextLong()).array();
-        final MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        digest.reset();
-        digest.update(passwordSalt);
-        byte[] passwordHash = digest.digest(password.getBytes(Charset.forName("UTF-8")));
-        for (int i = 0; i < 1000; i++) {
-            digest.reset();
-            passwordHash = digest.digest(passwordHash);
-        }
+        // Encrypt the raw password, with BCrypt code borrowed from the Spring Security project
+        final String salt = BCrypt.gensalt(10, new SecureRandom());
+        final String passwordHash = BCrypt.hashpw(password, salt);
 
         final String firstName = rs.getString(USER.FIRST_NAME);
         if (firstName == null || rs.wasNull()) {
@@ -301,7 +291,6 @@ public final class LegacySQLiteReader extends JDBCReader {
                 activityLevel,
                 username, // email
                 passwordHash,
-                passwordSalt,
                 firstName,
                 lastName,
                 earliestActivity,
