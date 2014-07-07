@@ -74,8 +74,8 @@ public abstract class JDBCWriter {
     protected void writeUsers() throws Exception {
         for (final User user : datastore.getUsers()) {
             final String userSql = "INSERT INTO " + JDBCReader.TABLES.USER + " (" + JDBCReader.USER.ID + ", " + JDBCReader.USER.GENDER + ", " + JDBCReader.USER.BIRTHDATE + ", " + JDBCReader.USER.HEIGHT_IN_INCHES
-                    + ", " + JDBCReader.USER.ACTIVITY_LEVEL + ", " + JDBCReader.USER.EMAIL + ", " + JDBCReader.USER.PASSWORD_HASH + ", " + JDBCReader.USER.PASSWORD_SALT + ", " + JDBCReader.USER.FIRST_NAME
-                    + ", " + JDBCReader.USER.LAST_NAME + ", " + JDBCReader.USER.CREATED_TIME + ", " + JDBCReader.USER.LAST_UPDATED_TIME + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    + ", " + JDBCReader.USER.ACTIVITY_LEVEL + ", " + JDBCReader.USER.EMAIL + ", " + JDBCReader.USER.PASSWORD_HASH + ", " + JDBCReader.USER.FIRST_NAME
+                    + ", " + JDBCReader.USER.LAST_NAME + ", " + JDBCReader.USER.CREATED_TIME + ", " + JDBCReader.USER.LAST_UPDATED_TIME + ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             try (PreparedStatement statement = connection.prepareStatement(userSql)) {
                 statement.setObject(1, user.getId(), Types.BINARY);
                 statement.setString(2, user.getGender().toString());
@@ -83,12 +83,11 @@ public abstract class JDBCWriter {
                 statement.setDouble(4, user.getHeightInInches());
                 statement.setDouble(5, user.getActivityLevel().getValue());
                 statement.setString(6, user.getEmail());
-                statement.setBytes(7, user.getPasswordHash());
-                statement.setBytes(8, user.getPasswordSalt());
-                statement.setString(9, user.getFirstName());
-                statement.setString(10, user.getLastName());
-                statement.setTimestamp(11, user.getCreatedTime());
-                statement.setTimestamp(12, user.getLastUpdatedTime());
+                statement.setString(7, user.getPasswordHash());
+                statement.setString(8, user.getFirstName());
+                statement.setString(9, user.getLastName());
+                statement.setTimestamp(10, user.getCreatedTime());
+                statement.setTimestamp(11, user.getLastUpdatedTime());
                 statement.executeUpdate();
             }
 

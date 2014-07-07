@@ -86,8 +86,7 @@ public final class User {
     private double heightInInches;
     private ActivityLevel activityLevel;
     private String email;
-    private byte[] passwordHash;
-    private byte[] passwordSalt;
+    private String passwordHash;
     private String firstName;
     private String lastName;
     private Timestamp createdTime;
@@ -105,8 +104,7 @@ public final class User {
             final double heightInInches,
             @Nonnull final ActivityLevel activityLevel,
             @Nonnull final String email,
-            @Nonnull final byte[] passwordHash,
-            @Nonnull final byte[] passwordSalt,
+            @Nonnull final String passwordHash,
             @Nonnull final String firstName,
             @Nonnull final String lastName,
             @Nonnull final Timestamp createdTime,
@@ -122,8 +120,7 @@ public final class User {
         this.heightInInches = heightInInches;
         this.activityLevel = activityLevel;
         this.email = email;
-        this.passwordHash = passwordHash.clone();
-        this.passwordSalt = passwordSalt.clone();
+        this.passwordHash = passwordHash;
         this.firstName = firstName;
         this.lastName = lastName;
         this.createdTime = (Timestamp) createdTime.clone();
@@ -191,21 +188,12 @@ public final class User {
     }
 
     @Nonnull
-    public byte[] getPasswordHash() {
-        return passwordHash.clone();
+    public String getPasswordHash() {
+        return passwordHash;
     }
 
-    public void setPasswordHash(@Nonnull final byte[] passwordHash) {
-        this.passwordHash = passwordHash.clone();
-    }
-
-    @Nonnull
-    public byte[] getPasswordSalt() {
-        return passwordSalt.clone();
-    }
-
-    public void setPasswordSalt(@Nonnull final byte[] passwordSalt) {
-        this.passwordSalt = passwordSalt.clone();
+    public void setPasswordHash(@Nonnull final String passwordHash) {
+        this.passwordHash = passwordHash;
     }
 
     @Nonnull

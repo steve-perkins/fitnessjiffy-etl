@@ -35,7 +35,6 @@ public abstract class JDBCReader {
         String ACTIVITY_LEVEL = "ACTIVITY_LEVEL";
         String EMAIL = "EMAIL";
         String PASSWORD_HASH = "PASSWORD_HASH";
-        String PASSWORD_SALT = "PASSWORD_SALT";
         String FIRST_NAME = "FIRST_NAME";
         String LAST_NAME = "LAST_NAME";
         String CREATED_TIME = "CREATED_TIME";
@@ -253,8 +252,7 @@ public abstract class JDBCReader {
                 rs.getDouble(USER.HEIGHT_IN_INCHES),
                 User.ActivityLevel.fromValue(rs.getDouble(USER.ACTIVITY_LEVEL)),
                 rs.getString(USER.EMAIL),
-                rs.getBytes(USER.PASSWORD_HASH),
-                rs.getBytes(USER.PASSWORD_SALT),
+                rs.getString(USER.PASSWORD_HASH),
                 rs.getString(USER.FIRST_NAME),
                 rs.getString(USER.LAST_NAME),
                 rs.getTimestamp(USER.CREATED_TIME),

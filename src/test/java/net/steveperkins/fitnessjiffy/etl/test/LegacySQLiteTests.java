@@ -14,8 +14,8 @@ import static junit.framework.TestCase.assertEquals;
 
 public final class LegacySQLiteTests extends AbstractTests {
 
-    protected static final int EXPECTED_JSON_STRING_LENGTH = 3475965;
-    protected static final int EXPECTED_JSON_FILE_LENGTH = 3476112;
+    protected static final int EXPECTED_JSON_STRING_LENGTH = 3475939;
+    protected static final int EXPECTED_JSON_FILE_LENGTH = 3476086;
 
     @Before
     public void before() throws Exception {
