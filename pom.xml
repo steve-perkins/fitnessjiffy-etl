@@ -108,6 +108,8 @@
                     <includes><include>**/*</include></includes>
                     <repositoryName>mvn-repo</repositoryName>
                     <repositoryOwner>steve-perkins</repositoryOwner>
+                    <userName>${env.GITHUB_USERNAME}</userName>
+                    <password>${env.GETHUB_PASSWORD}</password>
                 </configuration>
                 <executions>
                     <execution>
