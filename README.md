@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/steve-perkins/fitnessjiffy-etl.svg?branch=master)](https://travis-ci.org/steve-perkins/fitnessjiffy-etl)
+
 fitnessjiffy-etl
 ================
 
