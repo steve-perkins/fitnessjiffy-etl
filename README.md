@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/steve-perkins/fitnessjiffy-etl.svg?branch=master)](https://travis-ci.org/steve-perkins/fitnessjiffy-etl)
+[![Build Status](https://drone.io/github.com/steve-perkins/fitnessjiffy-etl/status.png)](https://drone.io/github.com/steve-perkins/fitnessjiffy-etl/latest)
 
 fitnessjiffy-etl
 ================

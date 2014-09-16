@@ -114,12 +114,4 @@
         </plugins>
     </build>
 
-    <distributionManagement>
-        <repository>
-            <id>bintray-steve-perkins-maven-fitnessjiffy-etl</id>
-            <name>steve-perkins-maven-fitnessjiffy-etl</name>
-            <url>https://api.bintray.com/maven/steve-perkins/maven/fitnessjiffy-etl</url>
-        </repository>
-    </distributionManagement>
-
 </project>
