@@ -63,6 +63,17 @@
 
     <build>
         <plugins>
+            <!-- The PostgreSQL integratino tests should only be run in environments with a PostgreSQL server present and the database schema loaded. -->
+            <!-- Prevent only these PostgreSQL tests from running automatically on continuous integration servers. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>**/PostgresTest.java</exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
             <!-- Support for building a monolithic uber-jar with all dependencies bundled -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -9,7 +9,7 @@ import org.junit.Test;
 import java.sql.Connection;
 import java.sql.DriverManager;
 
-public final class MigrationTests extends AbstractTests {
+public final class MigrationTest extends AbstractTest {
 
     @Before
     public void before() throws Exception {

@@ -3,7 +3,7 @@ package net.steveperkins.fitnessjiffy.etl.test;
 import javax.annotation.Nonnull;
 import java.io.File;
 
-public abstract class AbstractTests {
+public abstract class AbstractTest {
 
     protected static final int EXPECTED_JSON_STRING_LENGTH = 3477849;
     protected static final int EXPECTED_JSON_FILE_LENGTH = 3477996;

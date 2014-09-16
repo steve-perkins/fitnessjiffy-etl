@@ -13,7 +13,7 @@ import java.sql.Statement;
 
 import static junit.framework.TestCase.assertEquals;
 
-public final class PostgresTests extends AbstractTests {
+public final class PostgresTest extends AbstractTest {
 
     private static final String JDBC_BASE_URL = "jdbc:postgresql://localhost/";
     private static final String JDBC_USERNAME = "admin";

@@ -12,7 +12,7 @@ import java.sql.DriverManager;
 
 import static junit.framework.TestCase.assertEquals;
 
-public final class H2Tests extends AbstractTests {
+public final class H2Test extends AbstractTest {
 
     @Before
     public void before() throws Exception {

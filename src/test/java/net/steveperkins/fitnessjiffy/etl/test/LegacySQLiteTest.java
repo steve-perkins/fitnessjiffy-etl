@@ -12,7 +12,7 @@ import java.sql.DriverManager;
 
 import static junit.framework.TestCase.assertEquals;
 
-public final class LegacySQLiteTests extends AbstractTests {
+public final class LegacySQLiteTest extends AbstractTest {
 
     protected static final int EXPECTED_JSON_STRING_LENGTH = 3475939;
     protected static final int EXPECTED_JSON_FILE_LENGTH = 3476086;
