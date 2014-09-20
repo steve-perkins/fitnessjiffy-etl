@@ -14,11 +14,20 @@ import net.steveperkins.fitnessjiffy.etl.model.Weight;
 import javax.annotation.Nonnull;
 import java.io.InputStream;
 import java.security.SecureRandom;
-import java.sql.*;
+import java.sql.Connection;
 import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 public final class LegacySQLiteReader extends JDBCReader {
 

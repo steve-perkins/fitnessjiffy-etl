@@ -14,3 +14,6 @@ the necessary tables if they don't already exist.
 By default, this project builds a monolithic uber-JAR with all dependencies bundled.  The main 
 class of this executable JAR, `net.steveperkins.fitnessjiffy.etl.Migrate`, allows you to backup/restore 
 a database or migrate between different database versions.
+
+WARNING: To prevent dates from being one day off due to time zone mangling, it is best for the 
+system clocks on all machines involved to be set to UTC time.
