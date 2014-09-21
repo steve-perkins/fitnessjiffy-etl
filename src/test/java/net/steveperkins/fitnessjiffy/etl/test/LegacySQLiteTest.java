@@ -1,6 +1,8 @@
 package net.steveperkins.fitnessjiffy.etl.test;
 
 import net.steveperkins.fitnessjiffy.etl.model.Datastore;
+import net.steveperkins.fitnessjiffy.etl.model.ReportData;
+import net.steveperkins.fitnessjiffy.etl.model.User;
 import net.steveperkins.fitnessjiffy.etl.reader.LegacySQLiteReader;
 import net.steveperkins.fitnessjiffy.etl.writer.LegacySQLiteWriter;
 import org.junit.Before;
@@ -9,13 +11,14 @@ import org.junit.Test;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.HashSet;
 
 import static junit.framework.TestCase.assertEquals;
 
 public final class LegacySQLiteTest extends AbstractTest {
 
-    protected static final int EXPECTED_JSON_STRING_LENGTH = 3475939;
-    protected static final int EXPECTED_JSON_FILE_LENGTH = 3476086;
+    protected static final int EXPECTED_JSON_STRING_LENGTH = 3475955;
+    protected static final int EXPECTED_JSON_FILE_LENGTH = 3476102;
 
     @Before
     public void before() throws Exception {
@@ -28,13 +31,22 @@ public final class LegacySQLiteTest extends AbstractTest {
     public void canReadTest() throws Exception {
         final Connection connection = DriverManager.getConnection("jdbc:sqlite:" + CURRENT_WORKING_DIRECTORY + "sqlite.db");
 
+        // The the number of report data entries that were generated
+        final Datastore datastore = new LegacySQLiteReader(connection).read();
+        final User user = datastore.getUsers().iterator().next();
+        assertEquals(EXPECTED_NUMBER_OF_REPORT_DATA_RECORDS, user.getReportData().size());
+
+        // Remove the report data entries, so that the rest of the data will have a predictable size
+        // (size can't be predicted with the report data entries in place, because different UUID values are generated for them with each run)
+        user.setReportData(new HashSet<ReportData>());
+
         // Test conversion to JSON string
-        final String jsonString = new LegacySQLiteReader(connection).read().toJSONString();
+        final String jsonString = datastore.toJSONString();
         assertEquals(EXPECTED_JSON_STRING_LENGTH, jsonString.length());
 
         // Test output to JSON file
         final File jsonFile = new File(CURRENT_WORKING_DIRECTORY + "output.json");
-        new LegacySQLiteReader(connection).read().toJSONFile(jsonFile);
+        datastore.toJSONFile(jsonFile);
         assertEquals(EXPECTED_JSON_FILE_LENGTH, jsonFile.length());
 
         connection.close();

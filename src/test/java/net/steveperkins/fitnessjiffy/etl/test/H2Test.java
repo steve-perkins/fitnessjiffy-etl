@@ -1,6 +1,8 @@
 package net.steveperkins.fitnessjiffy.etl.test;
 
 import net.steveperkins.fitnessjiffy.etl.model.Datastore;
+import net.steveperkins.fitnessjiffy.etl.model.ReportData;
+import net.steveperkins.fitnessjiffy.etl.model.User;
 import net.steveperkins.fitnessjiffy.etl.reader.H2Reader;
 import net.steveperkins.fitnessjiffy.etl.writer.H2Writer;
 import org.junit.Before;
@@ -9,6 +11,7 @@ import org.junit.Test;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.HashSet;
 
 import static junit.framework.TestCase.assertEquals;
 
@@ -26,13 +29,22 @@ public final class H2Test extends AbstractTest {
     public void canReadTest() throws Exception {
         final Connection connection = DriverManager.getConnection("jdbc:h2:" + CURRENT_WORKING_DIRECTORY + "h2");
 
+        // The the number of report data entries that were generated
+        final Datastore datastore = new H2Reader(connection).read();
+        final User user = datastore.getUsers().iterator().next();
+        assertEquals(EXPECTED_NUMBER_OF_REPORT_DATA_RECORDS, user.getReportData().size());
+
+        // Remove the report data entries, so that the rest of the data will have a predictable size
+        // (size can't be predicted with the report data entries in place, because different UUID values are generated for them with each run)
+        user.setReportData(new HashSet<ReportData>());
+
         // Test conversion to JSON string
-        final String jsonString = new H2Reader(connection).read().toJSONString();
+        final String jsonString = datastore.toJSONString();
         assertEquals(EXPECTED_JSON_STRING_LENGTH, jsonString.length());
 
         // Test output to JSON file
         final File jsonFile = new File(CURRENT_WORKING_DIRECTORY + "output.json");
-        new H2Reader(connection).read().toJSONFile(jsonFile);
+        datastore.toJSONFile(jsonFile);
         assertEquals(EXPECTED_JSON_FILE_LENGTH, jsonFile.length());
 
         connection.close();

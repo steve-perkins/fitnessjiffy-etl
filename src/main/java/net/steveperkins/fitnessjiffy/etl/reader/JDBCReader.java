@@ -5,15 +5,23 @@ import net.steveperkins.fitnessjiffy.etl.model.Exercise;
 import net.steveperkins.fitnessjiffy.etl.model.ExercisePerformed;
 import net.steveperkins.fitnessjiffy.etl.model.Food;
 import net.steveperkins.fitnessjiffy.etl.model.FoodEaten;
+import net.steveperkins.fitnessjiffy.etl.model.ReportData;
 import net.steveperkins.fitnessjiffy.etl.model.User;
 import net.steveperkins.fitnessjiffy.etl.model.Weight;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import org.joda.time.LocalDate;
 
 import javax.annotation.Nonnull;
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Types;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.UUID;
 
 public abstract class JDBCReader {
@@ -25,6 +33,7 @@ public abstract class JDBCReader {
         String FOOD_EATEN = "FOOD_EATEN";
         String EXERCISE = "EXERCISE";
         String EXERCISE_PERFORMED = "EXERCISE_PERFORMED";
+        String REPORT_DATA = "REPORT_DATA";
     }
 
     public interface USER {
@@ -91,6 +100,15 @@ public abstract class JDBCReader {
         String MINUTES = "MINUTES";
     }
 
+    public interface REPORT_DATA {
+        String ID = "ID";
+        String USER_ID = "USER_ID";
+        String DATE = "DATE";
+        String POUNDS = "POUNDS";
+        String NET_CALORIES = "NET_CALORIES";
+        String NET_POINTS = "NET_POINTS";
+    }
+
     protected static final String EXERCISES_JSON_PATH = "/exercises.json";
 
     protected Connection connection;
@@ -110,8 +128,10 @@ public abstract class JDBCReader {
         final Datastore datastore = new Datastore();
 
         // Load exercises
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + TABLES.EXERCISE);
-             ResultSet rs = statement.executeQuery()) {
+        try (
+                PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + TABLES.EXERCISE);
+                ResultSet rs = statement.executeQuery();
+        ) {
             while (rs.next()) {
                 final Exercise exercise = new Exercise(
                         UUID.nameUUIDFromBytes(rs.getBytes(EXERCISE.ID)),
@@ -125,8 +145,10 @@ public abstract class JDBCReader {
         }
 
         // Load global foods
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + TABLES.FOOD + " WHERE " + FOOD.USER_ID + " IS NULL");
-             ResultSet rs = statement.executeQuery()) {
+        try (
+                PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + TABLES.FOOD + " WHERE " + FOOD.USER_ID + " IS NULL");
+                ResultSet rs = statement.executeQuery();
+        ) {
             while (rs.next()) {
                 final Food food = new Food(
                         UUID.nameUUIDFromBytes(rs.getBytes(FOOD.ID)),
@@ -149,11 +171,48 @@ public abstract class JDBCReader {
         }
 
         // Load users (includes weights, user-owned foods, foods eaten, and exercises performed)
-        try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + TABLES.USER);
-             ResultSet rs = statement.executeQuery()) {
+        try (
+                PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + TABLES.USER);
+                ResultSet rs = statement.executeQuery();
+        ) {
             while (rs.next()) {
                 datastore.addUser(readUser(rs, connection));
             }
+        }
+
+        // Load (or generate) report data for each user
+        for (final User user : datastore.getUsers()) {
+            final Set<ReportData> reportData = new HashSet<>();
+            try (
+                    PreparedStatement statement = connection.prepareStatement(
+                            "SELECT * FROM " + TABLES.REPORT_DATA + " WHERE " + TABLES.REPORT_DATA + "." + REPORT_DATA.USER_ID + " = ?"
+                    )
+            ) {
+                statement.setObject(1, user.getId(), Types.BINARY);
+                try (ResultSet rs = statement.executeQuery()) {
+                    while (rs.next()) {
+                        final ReportData reportDataRow = new ReportData(
+                                UUID.nameUUIDFromBytes(rs.getBytes(REPORT_DATA.ID)),
+                                rs.getDate(REPORT_DATA.DATE),
+                                rs.getDouble(REPORT_DATA.POUNDS),
+                                rs.getInt(REPORT_DATA.NET_CALORIES),
+                                rs.getDouble(REPORT_DATA.NET_POINTS)
+                        );
+                        reportData.add(reportDataRow);
+                    }
+                }
+            } catch (Exception e) {
+                // Some database models (e.g. Legacy SQLite, or early versions of H2 and PostgreSQL) did not have the REPORT_DATA
+                // table.  So if an exception is thrown when tryin to access this table, fall back to generating the data instead.
+                final Set<ReportData> generatedReportData = generateReportData(
+                        user,
+                        datastore.getGlobalFoods(),
+                        datastore.getExercises()
+                );
+                reportData.clear();
+                reportData.addAll(generatedReportData);
+            }
+            user.setReportData(reportData);
         }
 
         return datastore;
@@ -230,7 +289,8 @@ public abstract class JDBCReader {
         // Exercises performed
         final Set<ExercisePerformed> exercisesPerformed = new HashSet<>();
         try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT * FROM " + TABLES.EXERCISE_PERFORMED + " WHERE " + TABLES.EXERCISE_PERFORMED + "." + EXERCISE_PERFORMED.USER_ID + " = ?")) {
+                "SELECT * FROM " + TABLES.EXERCISE_PERFORMED + " WHERE " + TABLES.EXERCISE_PERFORMED + "." + EXERCISE_PERFORMED.USER_ID + " = ?"
+        )) {
             statement.setBytes(1, userId);
             try (ResultSet exercisesPerformedResultSet = statement.executeQuery()) {
                 while (exercisesPerformedResultSet.next()) {
@@ -262,6 +322,166 @@ public abstract class JDBCReader {
                 foodsEaten,
                 exercisesPerformed
         );
+    }
+
+    protected Set<ReportData> generateReportData(
+            @Nonnull final User user,
+            @Nonnull final Set<Food> globalFoods,
+            @Nonnull final Set<Exercise> exercises
+    ) {
+        //
+        // Populate lookup maps for this user's data, while detecting the date range all this data encompasses.
+        //
+
+        final Map<Date, Weight> weightsByDate = new TreeMap<>();
+        final Map<Date, Set<FoodEaten>> foodsEatenByDate = new TreeMap<>();
+        final Map<Date, Set<ExercisePerformed>> exercisesPerformedByDate = new TreeMap<>();
+        final Map<UUID, Food> foodsById = new TreeMap<>();
+        final Map<UUID, Exercise> exercisesById = new TreeMap<>();
+
+        Date earliestDateForUser = null;
+        Date latestDateForUser = null;
+
+        for (final Weight weight : user.getWeights()) {
+            if (earliestDateForUser == null || weight.getDate().compareTo(earliestDateForUser) < 0) {
+                earliestDateForUser = weight.getDate();
+            }
+            if (latestDateForUser == null || weight.getDate().compareTo(latestDateForUser) > 0) {
+                latestDateForUser = weight.getDate();
+            }
+            weightsByDate.put(weight.getDate(), weight);
+        }
+
+        for (final FoodEaten foodEaten : user.getFoodsEaten()) {
+            if (earliestDateForUser == null || foodEaten.getDate().compareTo(earliestDateForUser) < 0) {
+                earliestDateForUser = foodEaten.getDate();
+            }
+            if (latestDateForUser == null || foodEaten.getDate().compareTo(latestDateForUser) > 0) {
+                latestDateForUser = foodEaten.getDate();
+            }
+            final Set<FoodEaten> foodsEatenThisDate =
+                    foodsEatenByDate.containsKey(foodEaten.getDate()) ? foodsEatenByDate.get(foodEaten.getDate()) : new HashSet<FoodEaten>();
+            foodsEatenThisDate.add(foodEaten);
+            foodsEatenByDate.put(foodEaten.getDate(), foodsEatenThisDate);
+        }
+
+        for (final ExercisePerformed exercisePerformed : user.getExercisesPerformed()) {
+            if (earliestDateForUser == null || exercisePerformed.getDate().compareTo(earliestDateForUser) < 0) {
+                earliestDateForUser = exercisePerformed.getDate();
+            }
+            if (latestDateForUser == null || exercisePerformed.getDate().compareTo(latestDateForUser) > 0) {
+                latestDateForUser = exercisePerformed.getDate();
+            }
+            final Set<ExercisePerformed> exercisesPerformedThisDate =
+                    exercisesPerformedByDate.containsKey(exercisePerformed.getDate()) ? exercisesPerformedByDate.get(exercisePerformed.getDate()) : new HashSet<ExercisePerformed>();
+            exercisesPerformedThisDate.add(exercisePerformed);
+            exercisesPerformedByDate.put(exercisePerformed.getDate(), exercisesPerformedThisDate);
+        }
+
+        for (final Food food : globalFoods) {
+            foodsById.put(food.getId(), food);
+        }
+        for (final Food food : user.getFoods()) {
+            foodsById.put(food.getId(), food);
+        }
+
+        for (final Exercise exercise : exercises) {
+            exercisesById.put(exercise.getId(), exercise);
+        }
+
+        //
+        // Iterate through each day in the date range
+        //
+
+        final Set<ReportData> reportData = new HashSet<>();
+        Weight mostRecentWeight = null;
+        Date currentDate = earliestDateForUser;
+        while (currentDate.compareTo(latestDateForUser) <= 0) {
+
+            // Determine weight on this day
+            Weight weight = weightsByDate.get(currentDate);
+            if (weight == null && mostRecentWeight != null) {
+                weight = mostRecentWeight;
+            } else if (weight == null) {
+                final Date date = new Date(
+                        new LocalDate(DateTimeZone.UTC).toDateTimeAtStartOfDay(DateTimeZone.UTC).getMillis()
+                );
+                weight = new Weight(UUID.randomUUID(), date, 0.0);
+            }
+            mostRecentWeight = weight;
+
+            // Iterate through the foods eaten performed on this day, tallying net calories and points
+            int netCalories = 0;
+            double netPoints = 0.0;
+            final Set<FoodEaten> foodsEaten = foodsEatenByDate.get(currentDate) == null ? new HashSet<FoodEaten>() : foodsEatenByDate.get(currentDate);
+            for (final FoodEaten foodEaten : foodsEaten) {
+                final Food food = foodsById.get(foodEaten.getFoodId());
+
+                // Calculate default points for this food
+                final double fiber = (food.getFiber() <= 4) ? food.getFiber() : 4.0;
+                double points = (food.getCalories() / 50.0) + (food.getFat() / 12.0) - (fiber / 5.0);
+                points = (points > 0) ? points : 0.0;
+
+                // Calculate the ratio between this food's default serving size and the serving actually eaten
+                double ratio;
+                if (foodEaten.getServingType().equals(food.getDefaultServingType())) {
+                    // Default serving type was used
+                    ratio = foodEaten.getServingQty() / food.getServingTypeQty();
+                } else {
+                    // Serving type needs conversion
+                    final double ouncesInThisServingType = foodEaten.getServingType().getValue();
+                    final double ouncesInDefaultServingType = food.getDefaultServingType().getValue();
+                    ratio = (ouncesInDefaultServingType * food.getServingTypeQty() == 0) ? 0 : (ouncesInThisServingType * foodEaten.getServingQty()) / (ouncesInDefaultServingType * food.getServingTypeQty());
+                }
+
+                netCalories += (food.getCalories() * ratio);
+                netPoints += (points * ratio);
+            }
+
+            // Iterate through the exercises performed on this day, adjusting the net calories and points
+            final Set<ExercisePerformed> exercisesPerformed = exercisesPerformedByDate.get(currentDate) == null ? new HashSet<ExercisePerformed>() : exercisesPerformedByDate.get(currentDate);
+            for (final ExercisePerformed exercisePerformed : exercisesPerformed) {
+                final Exercise exercise = exercisesById.get(exercisePerformed.getExerciseId());
+
+                // Calories burned
+                final double weightInKilograms = weight.getPounds() / 2.2;
+                final int caloriesBurned = (int) (exercise.getMetabolicEquivalent() * 3.5 * weightInKilograms / 200 * exercisePerformed.getMinutes());
+
+                // Points burned
+                final int caloriesBurnedPerHour = (int) (exercise.getMetabolicEquivalent() * 3.5 * weightInKilograms / 200 * 60);
+                double pointsBurned;
+                if (caloriesBurnedPerHour < 400) {
+                    pointsBurned = weight.getPounds() * exercisePerformed.getMinutes() * 0.000232;
+                } else if (caloriesBurnedPerHour < 900) {
+                    pointsBurned = weight.getPounds() * exercisePerformed.getMinutes() * 0.000327;
+                } else {
+                    pointsBurned = weight.getPounds() * exercisePerformed.getMinutes() * 0.0008077;
+                }
+
+                netCalories -= caloriesBurned;
+                netPoints -= pointsBurned;
+            }
+
+            //
+            // Add a record for this date, and then increment to the next day
+            //
+
+            final ReportData reportDataRow = new ReportData(
+                    user.getId(),
+                    currentDate,
+                    weight.getPounds(),
+                    netCalories,
+                    netPoints
+            );
+            reportData.add(reportDataRow);
+
+            final LocalDate today = new LocalDate(currentDate.getTime(), DateTimeZone.UTC);
+            final LocalDate tommorrow = today.plusDays(1);
+            final DateTime startOfTommorrow = tommorrow.toDateTimeAtStartOfDay(DateTimeZone.UTC);
+            currentDate = new Date(startOfTommorrow.getMillis());
+        }
+
+        return reportData;
     }
 
 }

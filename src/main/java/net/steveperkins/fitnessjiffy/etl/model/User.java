@@ -96,6 +96,7 @@ public final class User {
     private Set<Food> foods = new HashSet<>();
     private Set<FoodEaten> foodsEaten = new HashSet<>();
     private Set<ExercisePerformed> exercisesPerformed = new HashSet<>();
+    private Set<ReportData> reportData = new HashSet<>();
 
     public User(
             @Nonnull final UUID id,
@@ -268,4 +269,12 @@ public final class User {
         this.exercisesPerformed = exercisesPerformed;
     }
 
+    @Nonnull
+    public Set<ReportData> getReportData() {
+        return reportData;
+    }
+
+    public void setReportData(@Nonnull final Set<ReportData> reportData) {
+        this.reportData = reportData;
+    }
 }

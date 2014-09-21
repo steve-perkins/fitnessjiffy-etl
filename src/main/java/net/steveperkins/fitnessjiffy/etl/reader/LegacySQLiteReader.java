@@ -8,6 +8,7 @@ import net.steveperkins.fitnessjiffy.etl.model.Exercise;
 import net.steveperkins.fitnessjiffy.etl.model.ExercisePerformed;
 import net.steveperkins.fitnessjiffy.etl.model.Food;
 import net.steveperkins.fitnessjiffy.etl.model.FoodEaten;
+import net.steveperkins.fitnessjiffy.etl.model.ReportData;
 import net.steveperkins.fitnessjiffy.etl.model.User;
 import net.steveperkins.fitnessjiffy.etl.model.Weight;
 
@@ -151,7 +152,10 @@ public final class LegacySQLiteReader extends JDBCReader {
         try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + TABLES.USER);
              ResultSet rs = statement.executeQuery()) {
             while (rs.next()) {
-                datastore.addUser(readUser(rs, connection));
+                final User user = readUser(rs, connection);
+                final Set<ReportData> reportData = generateReportData(user, datastore.getGlobalFoods(), datastore.getExercises());
+                user.setReportData(reportData);
+                datastore.addUser(user);
             }
         }
         return datastore;
