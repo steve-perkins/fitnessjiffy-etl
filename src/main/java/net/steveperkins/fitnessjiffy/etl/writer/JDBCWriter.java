@@ -5,6 +5,7 @@ import net.steveperkins.fitnessjiffy.etl.model.Exercise;
 import net.steveperkins.fitnessjiffy.etl.model.ExercisePerformed;
 import net.steveperkins.fitnessjiffy.etl.model.Food;
 import net.steveperkins.fitnessjiffy.etl.model.FoodEaten;
+import net.steveperkins.fitnessjiffy.etl.model.ReportData;
 import net.steveperkins.fitnessjiffy.etl.model.User;
 import net.steveperkins.fitnessjiffy.etl.model.Weight;
 import net.steveperkins.fitnessjiffy.etl.reader.JDBCReader;
@@ -97,7 +98,7 @@ public abstract class JDBCWriter {
                 try (PreparedStatement statement = connection.prepareStatement(sql)) {
                     statement.setObject(1, weight.getId(), Types.BINARY);
                     statement.setObject(2, user.getId(), Types.BINARY);
-                    statement.setDate(3, new java.sql.Date(weight.getDate().getTime()));
+                    statement.setDate(3, weight.getDate());
                     statement.setDouble(4, weight.getPounds());
                     statement.executeUpdate();
                 }
@@ -115,7 +116,7 @@ public abstract class JDBCWriter {
                     statement.setObject(1, foodEaten.getId(), Types.BINARY);
                     statement.setObject(2, user.getId(), Types.BINARY);
                     statement.setObject(3, foodEaten.getFoodId(), Types.BINARY);
-                    statement.setDate(4, new java.sql.Date(foodEaten.getDate().getTime()));
+                    statement.setDate(4, foodEaten.getDate());
                     statement.setString(5, foodEaten.getServingType().toString());
                     statement.setDouble(6, foodEaten.getServingQty());
                     statement.executeUpdate();
@@ -130,8 +131,23 @@ public abstract class JDBCWriter {
                     statement.setObject(1, exercisePerformed.getId(), Types.BINARY);
                     statement.setObject(2, user.getId(), Types.BINARY);
                     statement.setObject(3, exercisePerformed.getExerciseId(), Types.BINARY);
-                    statement.setDate(4, new java.sql.Date(exercisePerformed.getDate().getTime()));
+                    statement.setDate(4, exercisePerformed.getDate());
                     statement.setInt(5, exercisePerformed.getMinutes());
+                    statement.executeUpdate();
+                }
+            }
+
+            for (final ReportData reportData : user.getReportData()) {
+                final String sql = "INSERT INTO " + JDBCReader.TABLES.REPORT_DATA + "(" + JDBCReader.REPORT_DATA.ID + ", "
+                        + JDBCReader.REPORT_DATA.USER_ID + ", " + JDBCReader.REPORT_DATA.DATE + ", " + JDBCReader.REPORT_DATA.POUNDS + ", "
+                        + JDBCReader.REPORT_DATA.NET_CALORIES + ", " + JDBCReader.REPORT_DATA.NET_POINTS + ") VALUES (?, ?, ?, ?, ?, ?)";
+                try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                    statement.setObject(1, reportData.getId(), Types.BINARY);
+                    statement.setObject(2, user.getId(), Types.BINARY);
+                    statement.setDate(3, reportData.getDate());
+                    statement.setDouble(4, reportData.getPounds());
+                    statement.setInt(5, reportData.getNetCalories());
+                    statement.setDouble(6, reportData.getNetPoints());
                     statement.executeUpdate();
                 }
             }

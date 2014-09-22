@@ -201,6 +201,9 @@ public abstract class JDBCReader {
                         reportData.add(reportDataRow);
                     }
                 }
+                if (reportData.isEmpty()) {
+                    throw new Exception();
+                }
             } catch (Exception e) {
                 // Some database models (e.g. Legacy SQLite, or early versions of H2 and PostgreSQL) did not have the REPORT_DATA
                 // table.  So if an exception is thrown when tryin to access this table, fall back to generating the data instead.
@@ -467,7 +470,7 @@ public abstract class JDBCReader {
             //
 
             final ReportData reportDataRow = new ReportData(
-                    user.getId(),
+                    UUID.randomUUID(),
                     currentDate,
                     weight.getPounds(),
                     netCalories,
