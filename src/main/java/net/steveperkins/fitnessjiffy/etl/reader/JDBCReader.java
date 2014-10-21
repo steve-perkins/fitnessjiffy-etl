@@ -8,7 +8,6 @@ import net.steveperkins.fitnessjiffy.etl.model.FoodEaten;
 import net.steveperkins.fitnessjiffy.etl.model.ReportData;
 import net.steveperkins.fitnessjiffy.etl.model.User;
 import net.steveperkins.fitnessjiffy.etl.model.Weight;
-import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 import org.joda.time.LocalDate;
 
@@ -23,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public abstract class JDBCReader {
 
@@ -202,11 +202,11 @@ public abstract class JDBCReader {
                     }
                 }
                 if (reportData.isEmpty()) {
-                    throw new Exception();
+                    throw new Exception("No existing report data was found for this user");
                 }
             } catch (Exception e) {
                 // Some database models (e.g. Legacy SQLite, or early versions of H2 and PostgreSQL) did not have the REPORT_DATA
-                // table.  So if an exception is thrown when tryin to access this table, fall back to generating the data instead.
+                // table.  So if an exception is thrown when trying to access this table, fall back to generating the data instead.
                 final Set<ReportData> generatedReportData = generateReportData(
                         user,
                         datastore.getGlobalFoods(),
@@ -308,8 +308,24 @@ public abstract class JDBCReader {
             }
         }
 
+        // "UUID.nameUUIDFromBytes()" does not convert a byte array into a UUID in a deterministic manner.  So to avoid
+        // erroneously changing the ID for this user, this algorithm is used instead.  There may be the potential for
+        // this not to work when migrating from some platforms to others, as there is some weirdness around "endianness"
+        // that I haven't seen since college and don't fully understand
+        // (see "http://stackoverflow.com/questions/5745512/how-to-read-a-net-guid-into-a-java-uuid").  However, it
+        // has behaved predictably in all testing so far.
+        long mostSignificantBits = 0;
+        long leastSignificantBits = 0;
+        for (int index = 0; index < 8; index++) {
+            mostSignificantBits = (mostSignificantBits << 8) | ( userId[index] & 0xff);
+        }
+        for (int index = 0; index < 16; index++) {
+            leastSignificantBits = (leastSignificantBits << 8) | (userId[index] & 0xff);
+        }
+        final UUID userIdObject = new UUID(mostSignificantBits, leastSignificantBits);
+
         return new User(
-                UUID.nameUUIDFromBytes(userId),
+                userIdObject,
                 User.Gender.fromString(rs.getString(USER.GENDER)),
                 rs.getDate(USER.BIRTHDATE),
                 rs.getDouble(USER.HEIGHT_IN_INCHES),
@@ -478,10 +494,8 @@ public abstract class JDBCReader {
             );
             reportData.add(reportDataRow);
 
-            final LocalDate today = new LocalDate(currentDate.getTime(), DateTimeZone.UTC);
-            final LocalDate tommorrow = today.plusDays(1);
-            final DateTime startOfTommorrow = tommorrow.toDateTimeAtStartOfDay(DateTimeZone.UTC);
-            currentDate = new Date(startOfTommorrow.getMillis());
+            final Date tomorrow = new Date(currentDate.getTime() + TimeUnit.DAYS.toMillis(1));
+            currentDate = tomorrow;
         }
 
         return reportData;
