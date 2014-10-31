@@ -60,7 +60,7 @@ public final class PostgresWriter extends JDBCWriter {
                 "-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner:\n" +
                 "--\n" +
                 "\n" +
-                "COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';\n" +
+//                "COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';\n" +
                 "\n" +
                 "\n" +
                 "SET search_path = public, pg_catalog;\n" +
