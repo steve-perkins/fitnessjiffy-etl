@@ -1,7 +1,7 @@
 **NOTE: This project is deprecated.  At the time was in use, there were three different versions of the
 "fitnessjiffy" application, working with three different databases having somewhat different data models.
 Today, only the [Java/Spring-based version](https://github.com/steve-perkins/fitnessjiffy-spring) is still
-in active development, and I do not anticipate major changes to the database or data model anytime soon.**
+in active development, and I do not anticipate major changes to its database or data model anytime soon.**
 
 # FitnessJiffy ETL
 
